@@ -83,18 +83,21 @@ textarea.inp{min-height:84px;resize:vertical}
 .sec-h{font-size:15px;letter-spacing:.06em;text-transform:uppercase;color:var(--teal);font-weight:800;margin:22px 4px 6px}
 html.dark .sec-h{color:var(--teal2)}
 .item{background:var(--card);border:2px solid var(--line);border-radius:14px;margin:8px 0;overflow:hidden}
-.item.done{background:var(--done);border-color:var(--teal)}
+.item.done{background:var(--okbg);border-color:var(--line)}
+.item.ng.done{border-color:var(--ok)}
 .item.skip{opacity:.75}
 .item.skip .txt{text-decoration:line-through}
-.item.ng.open{border-color:var(--red)}
+
 .tick{display:flex;align-items:center;gap:12px;width:100%;min-height:64px;padding:10px 12px;background:transparent;border:0;text-align:left}
 .box{flex:0 0 40px;height:40px;border-radius:10px;border:3px solid var(--muted);display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:900;color:transparent}
-.done .box{background:var(--chk);border-color:var(--chk);color:#fff}
+.done .box{background:var(--okbg);border-color:var(--ok);color:var(--ok)}
+.ng.done .box{background:var(--ok);border-color:var(--ok);color:#fff}
 .skip .box{border-style:dashed}
 .skip .box::after{content:"–";color:var(--muted);font-size:26px}
 .txt{flex:1;font-size:19px;font-weight:600;line-height:1.3}
-.chip{display:inline-block;font-size:12px;font-weight:900;letter-spacing:.04em;padding:3px 7px;border-radius:7px;background:var(--red);color:#fff;vertical-align:2px;margin-left:4px;white-space:nowrap}
-.chip.ok{background:var(--ok)}
+.chip{display:inline-block;font-size:13px;font-weight:800;letter-spacing:.02em;padding:2px 8px;border-radius:7px;background:var(--amberbg);color:var(--amber);border:1.5px solid var(--amber);vertical-align:2px;margin-left:4px;white-space:nowrap}
+.chip.ok{background:var(--ok);color:#fff;border-color:var(--ok)}
+.hint{font-size:14px;color:var(--muted);margin:4px}
 .meta{display:flex;gap:6px;align-items:center;padding:0 10px 10px 64px;flex-wrap:wrap}
 .mbtn{min-height:48px;min-width:64px;padding:0 12px;border-radius:10px;border:2px solid var(--line);background:var(--bg2);font-size:16px;font-weight:700;color:var(--muted)}
 .mbtn.on{border-color:var(--teal);color:var(--teal)}
@@ -129,6 +132,7 @@ table.hrs th{color:var(--muted);font-size:13px}
 .principle{background:#b3161b;color:#fff;border-radius:16px;padding:14px;font-size:21px;font-weight:800}
 .foot{color:var(--muted);font-size:14px;text-align:center;margin:20px 0}
 .hide{display:none!important}
+.toast.tap{cursor:pointer;background:var(--teal);border:2px solid #fff;min-height:52px;display:flex;align-items:center}
 .toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom));transform:translateX(-50%);background:#0b1620;color:#fff;padding:12px 18px;border-radius:12px;font-weight:700;z-index:50;max-width:90%;text-align:center}
 @media (max-width:360px){.tiles{grid-template-columns:1fr}.grid2{grid-template-columns:1fr}}
 </style>
@@ -138,9 +142,9 @@ table.hrs th{color:var(--muted);font-size:13px}
 <div id="toast" class="toast hide"></div>
 <script>
 'use strict';
-const APP_VERSION = '1.0.0';
+const APP_VERSION = '2.0.0';
 const MANUAL = 'SDS-OM-001 Operations Manual v0.1';
-const LIMITS = { mean: 8, gust: 10, tmin: 0, tmax: 35, visKm: 1, kp: 5 };   // Manual 7.5 SDS operating limits
+const LIMITS = { mean: 15, gust: 19, tmin: 0, tmax: 35, visKm: 1, kp: 5 };   // Manual 7.5 SDS limits (8 m/s / 10 m/s) converted to knots, rounded down
 const GEOZONE_MAP = 'https://iaa-ie.maps.arcgis.com/apps/instant/basic/index.html?appid=0772db05b2bb488686d3678d8144ae66';
 const GEOZONE_PAGE = 'https://www.iaa.ie/general-aviation/drones/uas-geographic-zones';
 const ECCAIRS = 'https://aviationreporting.eu';
@@ -179,8 +183,8 @@ const LISTS = [
      ['p5','NOTAMs & TRAs re-checked today',1],
      ['p6','IMSAFE – fit to fly',1] ]},
    { h:'Weather (SDS limits, Manual 7.5)', items:[
-     ['p7','Mean wind ≤ 8 m/s at operating height',1],
-     ['p8','Gusts ≤ 10 m/s',1],
+     ['p7','Mean wind ≤ 15 kt at operating height',1],
+     ['p8','Gusts ≤ 19 kt',1],
      ['p9','No rain, drizzle, sleet, snow or fog',1],
      ['p10','Visibility ≥ 1 km & enough for VLOS; cloud base above max height',1],
      ['p11','Temperature 0–35 °C (below 10 °C: batteries pre-warmed)',1],
@@ -258,13 +262,14 @@ const FIELDSETS = {
  flights:{ h:'Flights', f:[ ['nflights','Flights flown','num'],['airtime','Total air time (min)','num'],['maxht','Max height flown (m)','num'],['battused','Batteries used'] ]}
 };
 const WXF = [ // key,label,unit
- ['hPlan','Planned max height','m'],['w10','Wind 10 m','m/s'],['wH','Wind at op. height','m/s'],['gust','Gusts','m/s'],['dir','Wind direction','°'],
+ ['hPlan','Planned max height','m'],['w10','Wind 10 m','kt'],['wH','Wind at op. height','kt'],['gust','Gusts','kt'],['dir','Wind direction','°'],
  ['temp','Temperature','°C'],['cloud','Cloud cover','%'],['cbase','Cloud base (est.)','m'],['vis','Visibility','km'],
  ['precip','Precipitation now','mm'],['pprob','Rain chance next 3 h','%'],['kp','Kp index','']
 ];
 
 /* ---------- State ---------- */
-const KEY = 'sds-checklist-state-v1';
+const KEY = 'sds-checklist-state-v2';   // v2: wind in knots
+const OLD_KEY = 'sds-checklist-state-v1'; const MS2KT = 1.943844;
 const pad = n => String(n).padStart(2,'0');
 const localDT = d => `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
 const hhmm = t => { const d=new Date(t); return `${pad(d.getHours())}:${pad(d.getMinutes())}`; };
@@ -272,8 +277,18 @@ const fmtDT = t => { const d=new Date(t); return `${pad(d.getDate())}/${pad(d.ge
 function freshJob(){ return { ref:'', dt:localDT(new Date()), pilot:'Brian Sinnott', aircraft:'DJI Air 3S', hPlan:'120' }; }
 function freshState(){ return { job:freshJob(), lists:{}, wx:{}, theme:null }; }
 let S;
-try { S = JSON.parse(localStorage.getItem(KEY)) || freshState(); } catch(e){ S = freshState(); }
+try { S = JSON.parse(localStorage.getItem(KEY)) || migrateV1() || freshState(); } catch(e){ S = freshState(); }
+function migrateV1(){ // v1 stored wind in m/s: convert to knots so nothing is misread
+  let o; try { o = JSON.parse(localStorage.getItem(OLD_KEY)); } catch(e){ o=null; }
+  if(!o) return null;
+  const cv = v => (v===''||v==null||isNaN(parseFloat(v))) ? v : String(Math.round(parseFloat(v)*MS2KT*10)/10);
+  ['w10','wH','gust'].forEach(k=>{ if(o.job) o.job[k]=cv(o.job[k]); if(o.wx&&o.wx.auto) o.wx.auto[k]=cv(o.wx.auto[k]); });
+  if(o.wx){ ['w80','w120'].forEach(k=>{ if(typeof o.wx[k]==='number') o.wx[k]=o.wx[k]*MS2KT; });
+    (o.wx.hours||[]).forEach(h=>['w10','w80','w120','g'].forEach(k=>{ if(typeof h[k]==='number') h[k]=h[k]*MS2KT; })); }
+  try { localStorage.setItem(KEY, JSON.stringify(o)); localStorage.removeItem(OLD_KEY); } catch(e){}
+  return o; }
 S.job = S.job || freshJob(); S.lists = S.lists || {}; S.wx = S.wx || {};
+if(S.job.hPlan===undefined) S.job.hPlan='120';
 let saveT;
 function save(now){ clearTimeout(saveT); const w=()=>{ try{ localStorage.setItem(KEY, JSON.stringify(S)); }catch(e){} }; if(now) w(); else saveT=setTimeout(w,250); }
 function L(id){ return S.lists[id] || (S.lists[id] = { items:{}, notes:'', started:null, completed:null }); }
@@ -285,7 +300,7 @@ applyTheme();
 /* ---------- Helpers ---------- */
 const $ = (s,el=document)=>el.querySelector(s);
 const esc = s => String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-function toast(msg){ const t=$('#toast'); t.textContent=msg; t.classList.remove('hide'); clearTimeout(t._h); t._h=setTimeout(()=>t.classList.add('hide'),2600); }
+function toast(msg){ const t=$('#toast'); t.textContent=msg; t.classList.remove('tap'); t.onclick=null; t.classList.remove('hide'); clearTimeout(t._h); t._h=setTimeout(()=>t.classList.add('hide'),2600); }
 const allItems = list => list.sections.flatMap(s=>s.items.map(([id,t,ng,link])=>({id,t,ng:!!ng,link,h:s.h})));
 function stats(list){
   const items = allItems(list), l = L(list.id);
@@ -301,8 +316,8 @@ function assessWx(j){
   const rows=[]; const add=(name,val,status,msg)=>rows.push({name,val,status,msg});
   const w10=num(j.w10), wH=num(j.wH), g=num(j.gust), t=num(j.temp), v=num(j.vis), p=num(j.precip), pp=num(j.pprob), kp=num(j.kp), cb=num(j.cbase), h=num(j.hPlan)||120;
   const mean = [w10,wH].filter(x=>x!=null); 
-  if(mean.length){ const m=Math.max(...mean); add('Mean wind', m.toFixed(1)+' m/s', m>LIMITS.mean?'red':m>LIMITS.mean*0.8?'amber':'green', `limit ${LIMITS.mean} m/s at height`); }
-  if(g!=null) add('Gusts', g.toFixed(1)+' m/s', g>LIMITS.gust?'red':g>LIMITS.gust*0.85?'amber':'green', `limit ${LIMITS.gust} m/s`);
+  if(mean.length){ const m=Math.max(...mean); add('Mean wind', m.toFixed(1)+' kt', m>LIMITS.mean?'red':m>=LIMITS.mean*0.8?'amber':'green', `limit ${LIMITS.mean} kt at height`); }
+  if(g!=null) add('Gusts', g.toFixed(1)+' kt', g>LIMITS.gust?'red':g>=LIMITS.gust*0.8?'amber':'green', `limit ${LIMITS.gust} kt`);
   if(p!=null||pp!=null){ const st = (p!=null&&p>0)?'red':(pp!=null&&pp>=50)?'amber':(pp!=null&&pp>=20)?'amber':'green';
     add('Precipitation', (p!=null?p+' mm':'–')+(pp!=null?` · ${pp}% next 3 h`:''), st, 'none allowed'); }
   if(v!=null) add('Visibility', v+' km', v<LIMITS.visKm?'red':v<3?'amber':'green', '≥ 1 km');
@@ -356,7 +371,7 @@ function jobCard(){
   return `<div class="card"><h2>Job</h2>
    ${fieldHTML(['ref','Job ref / site'])}
    <div class="grid2">${fieldHTML(['dt','Date & time'])}${fieldHTML(['pilot','Pilot'])}</div>
-   <div class="grid2">${wxInput('w10','Wind (m/s)')}${wxInput('temp','Temp (°C)')}</div></div>`.replace('id="j_dt" data-k="dt"','id="j_dt" data-k="dt" type="datetime-local"');
+   <div class="grid2">${wxInput('w10','Wind (kt)')}${wxInput('temp','Temp (°C)')}</div></div>`.replace('id="j_dt" data-k="dt"','id="j_dt" data-k="dt" type="datetime-local"');
 }
 function wxInput(k,label){ return `<label class="f">${label}</label><input class="inp" data-k="${k}" value="${esc(S.job[k]??'')}" inputmode="decimal" autocomplete="off">`; }
 function fieldset(name){
@@ -378,16 +393,16 @@ function weatherCard(){
     <label class="f">Weather remarks</label><textarea class="inp" data-k="wxremarks">${esc(S.job.wxremarks||'')}</textarea>
     <div id="hours">${hoursHTML()}</div>
     <div class="lights" id="lights"></div>
-    <p style="font-size:14px;color:var(--muted)">Limits from Manual 7.5: mean wind ≤ 8 m/s and gusts ≤ 10 m/s at operating height. Forecast gusts are at 10 m – expect more aloft. All fields can be edited.<br>Weather data: <a href="https://open-meteo.com/" target="_blank" rel="noopener">Open-Meteo.com</a> (CC BY 4.0) · Kp: NOAA SWPC.</p></div>`;
+    <p style="font-size:14px;color:var(--muted)">Wind in knots. Mean wind ≤ 15 kt and gusts ≤ 19 kt at operating height; amber from 80% of the limit. Limits from Manual 7.5 (8 m/s / 10 m/s) converted to knots. Forecast gusts are at 10 m – expect more aloft. All fields can be edited.<br>Weather data: <a href="https://open-meteo.com/" target="_blank" rel="noopener">Open-Meteo.com</a> (CC BY 4.0) · Kp: NOAA SWPC.</p></div>`;
 }
 function wxStatusText(){ const w=S.wx; if(w.error) return `<span class="warn">⚠️ ${esc(w.error)}</span>`;
   if(!w.fetchedAt) return 'Enter a location to auto-fill, or type values in.';
   return `${esc(w.source||'')}${w.place?` · ${esc(w.place)}`:''} (${w.lat.toFixed(3)}, ${w.lon.toFixed(3)})${num(S.job.dir)!=null?` · wind from ${compass(num(S.job.dir))}`:''}${w.kpSource?`<br>${esc(w.kpSource)}`:''}`; }
 function hoursHTML(){ const h=S.wx.hours; if(!h||!h.length) return '';
   const c=(v,lim)=>v==null?'–':`<span class="${v>lim?'over':''}">${v.toFixed(1)}</span>`;
-  return `<table class="hrs"><tr><th>Time</th><th>10 m</th><th>80 m</th><th>120 m</th><th>Gust</th><th>Rain %</th></tr>${h.map(r=>`<tr><td><b>${r.t}</b></td><td>${c(r.w10,8)}</td><td>${c(r.w80,8)}</td><td>${c(r.w120,8)}</td><td>${c(r.g,10)}</td><td>${r.pp??'–'}</td></tr>`).join('')}</table>`; }
+  return `<table class="hrs"><tr><th>Time</th><th>10 m kt</th><th>80 m kt</th><th>120 m kt</th><th>Gust kt</th><th>Rain %</th></tr>${h.map(r=>`<tr><td><b>${r.t}</b></td><td>${c(r.w10,LIMITS.mean)}</td><td>${c(r.w80,LIMITS.mean)}</td><td>${c(r.w120,LIMITS.mean)}</td><td>${c(r.g,LIMITS.gust)}</td><td>${r.pp??'–'}</td></tr>`).join('')}</table>`; }
 function lightsHTML(){ const a=assessWx(S.job); if(!a.rows.length) return '';
-  const head = a.overall==='red' ? `<div class="light red"><b>⛔ WEATHER NO-GO</b><span>${a.red.map(r=>r.name).join(', ')}</span></div>`
+  const head = a.overall==='red' ? `<div class="light red"><b>⛔ Weather outside limits</b><span>${a.red.map(r=>r.name).join(', ')}</span></div>`
     : a.overall==='amber' ? `<div class="light amber"><b>⚠️ Weather – caution</b><span>near limits</span></div>` : `<div class="light green"><b>✅ Weather within limits</b></div>`;
   return head + a.rows.map(r=>`<div class="light ${r.status}"><span>${r.name}: <b>${esc(r.val)}</b></span><span style="font-size:14px">${esc(r.msg)}</span></div>`).join(''); }
 
@@ -398,6 +413,7 @@ function renderList(id){
   const sec = list.sections.map(s=>`<div class="sec-h">${esc(s.h)}</div>`+s.items.map(([iid,t,ng,link])=>itemHTML(id,iid,t,ng,link)).join('')).join('');
   $('#app').innerHTML = header(list.title, true) + `<div class="sticky" id="stk"></div><main class="wrap">
     <div style="font-size:14px;color:var(--muted);margin:4px">${list.ref} · started ${hhmm(l.started)}</div>
+    ${allItems(list).some(i=>i.ng)?`<div class="hint">Items tagged <span class="chip">Critical</span> must be ticked before flight – they can’t be marked N/A.</div>`:''}
     ${jobCard()}
     ${list.fields.map(fieldset).join('')}
     ${list.quickwx?`<div class="card"><h2>Weather</h2><div class="lights" id="lights"></div><a class="btn sec" href="#preflight">Check / refresh weather in Pre-flight</a></div>`:''}
@@ -414,7 +430,7 @@ function renderList(id){
 function itemHTML(lid,iid,t,ng,link){
   const st=I(lid,iid); const cls=['item', ng?'ng':'', st.done?'done':'', st.skip?'skip':''].join(' ');
   return `<div class="${cls}" id="it_${iid}" data-i="${iid}">
-    <button class="tick" data-act="tick" aria-pressed="${!!st.done}"><span class="box">✓</span><span class="txt">${esc(t)}${ng?' <span class="chip">NO-GO</span>':''}</span></button>
+    <button class="tick" data-act="tick" aria-pressed="${!!st.done}"><span class="box">✓</span><span class="txt">${esc(t)}${ng?(st.done?' <span class="chip ok">Critical ✓</span>':' <span class="chip">Critical</span>'):''}</span></button>
     <div class="meta"><button class="mbtn ${st.note?'on':''}" data-act="note">📝 Note</button>${ng?'':`<button class="mbtn ${st.skip?'on':''}" data-act="skip">N/A</button>`}
      ${link?`<a class="lnk" href="${link.href}" target="_blank" rel="noopener">${link.label}</a>`:''}
      <span class="ts">${st.done&&st.t?'✓ '+hhmm(st.t):st.skip?'N/A':''}</span></div>
@@ -427,18 +443,20 @@ function refresh(){
   const s=stats(list), l=L(id), pct=Math.round(100*s.resolved/s.total);
   const wxa = (list.go) ? assessWx(S.job) : {red:[],overall:'none'};
   let banner;
-  const nogo = s.ngOpen.length>0 || wxa.red.length>0;
-  if(nogo){
-    const parts=[]; if(s.ngOpen.length) parts.push(`${s.ngOpen.length} NO-GO item${s.ngOpen.length>1?'s':''} not ticked`); if(wxa.red.length) parts.push('weather: '+wxa.red.map(r=>r.name).join(', '));
-    banner=`<div class="banner red" data-act="jump"><span style="white-space:nowrap">⛔ NO-GO</span><small>${esc(parts.join(' · '))}</small></div>`;
+  const nCrit = s.ngOpen.length, critTxt = `${nCrit} critical item${nCrit>1?'s':''} outstanding`;
+  const nogo = nCrit>0 || wxa.red.length>0;
+  if(wxa.red.length){
+    banner=`<div class="banner red" data-act="jump"><span>⛔ Weather outside limits<small>${esc(wxa.red.map(r=>`${r.name} ${r.val}`).join(' · '))}${nCrit?' · '+critTxt:''}</small></span></div>`;
+  } else if(nCrit){
+    banner=`<div class="banner amber" data-act="jump"><span>Not ready: ${critTxt}<small>Tap to go to the next one</small></span></div>`;
   } else if(s.complete){
-    banner = list.go ? `<div class="banner ok">✅ READY TO FLY</div>` : `<div class="banner ok">✅ ${esc(list.title)} complete</div>`;
-  } else banner = `<div class="banner ${list.go?'amber':'info'}">${list.go?'All NO-GO items ticked':'In progress'}<small>${s.total-s.resolved} item(s) left</small></div>`;
+    banner = list.go ? `<div class="banner ok">✅ Ready to fly</div>` : `<div class="banner ok">✅ ${esc(list.title)} complete</div>`;
+  } else banner = `<div class="banner ${list.go?'amber':'info'}"><span>${list.go?'Critical items complete':'In progress'}<small>${s.total-s.resolved} other item(s) left</small></span></div>`;
   $('#stk').innerHTML = `<div class="prog"><div class="pb"><i style="width:${pct}%"></i></div><span>${s.resolved}/${s.total}</span></div>${banner}`;
   const lg=$('#lights'); if(lg) lg.innerHTML=lightsHTML();
   if(s.complete && !l.completed){ l.completed=Date.now(); save(); }
   if(!s.complete && l.completed){ l.completed=null; save(); }
-  $('#donecard').innerHTML = s.complete ? `<div class="card complete"><h2>${nogo?'⛔ Checklist complete – but NO-GO':'✅ Checklist complete'}</h2>
+  $('#donecard').innerHTML = s.complete ? `<div class="card complete"><h2>${wxa.red.length?'⛔ Checklist complete – weather outside limits':'✅ Checklist complete'}</h2>
      <div style="font-size:16px;color:var(--muted)">Completed ${fmtDT(l.completed)} · ${s.done} ticked${s.skip?`, ${s.skip} N/A`:''}</div>
      <button class="btn" data-act="share">⇪ Share / Save record</button></div>` : '';
 }
@@ -464,9 +482,10 @@ function recordText(id){
   out.push('SINNOTT DRONE SERVICES'); out.push(`${list.title.toUpperCase()} CHECKLIST RECORD`); out.push('='.repeat(34));
   line('Job ref / site', j.ref); line('Date / time', j.dt?fmtDT(j.dt):''); line('Pilot', j.pilot); line('Observer', j.observer); line('Aircraft', j.aircraft);
   line('Started', l.started?fmtDT(l.started):''); line('Completed', l.completed?fmtDT(l.completed):'NOT COMPLETE');
-  const nogo = s.ngOpen.length||wxa.red.length;
-  out.push(`STATUS: ${nogo?'NO-GO':(s.complete?(list.go?'READY TO FLY':'COMPLETE'):'IN PROGRESS')} (${s.done} ticked, ${s.skip} N/A, ${s.total-s.resolved} open of ${s.total})`);
-  if(s.ngOpen.length) out.push('  NO-GO items open: '+s.ngOpen.map(i=>i.t).join('; '));
+  const status = wxa.red.length ? 'WEATHER OUTSIDE LIMITS' : s.ngOpen.length ? 'NOT READY' : s.complete ? (list.go?'READY TO FLY':'COMPLETE') : 'IN PROGRESS';
+  out.push(`STATUS: ${status} (${s.done} ticked, ${s.skip} N/A, ${s.total-s.resolved} open of ${s.total})`);
+  const nCritTotal = allItems(list).filter(i=>i.ng).length;
+  if(nCritTotal) out.push(s.ngOpen.length ? `Critical items: ${s.ngOpen.length} outstanding – ${s.ngOpen.map(i=>i.t).join('; ')}` : 'Critical items: all complete');
   if(wxa.red.length) out.push('  Weather over limits: '+wxa.red.map(r=>`${r.name} ${r.val}`).join('; '));
   const sect=(title,pairs)=>{ const rows=pairs.filter(([k])=>j[k]!=null&&String(j[k]).trim()!==''); if(!rows.length) return; out.push(''); out.push(`-- ${title} --`); rows.forEach(([k,lab])=>out.push(`${lab}: ${j[k]}`)); };
   sect('SITE / LOCATION', FIELDSETS.location.f);
@@ -477,7 +496,7 @@ function recordText(id){
     wxRows.forEach(([k,lab,u])=>{ const auto=S.wx.auto&&S.wx.auto[k]; const ed = (auto!=null && String(auto)!==String(j[k])) ? ' (edited)' : (auto==null&&S.wx.fetchedAt&&k!=='hPlan'?' (manual)':'');
       out.push(`${lab}: ${j[k]}${u?' '+u:''}${k==='dir'&&num(j[k])!=null?' '+compass(num(j[k])):''}${ed}`); });
     if(j.wxremarks) out.push(`Remarks: ${j.wxremarks}`);
-    if(S.wx.hours&&S.wx.hours.length) out.push('Next hours (m/s, 10/80/120 m, gust): '+S.wx.hours.map(h=>`${h.t} ${h.w10?.toFixed(1)}/${h.w80?.toFixed(1)}/${h.w120?.toFixed(1)} g${h.g?.toFixed(1)}`).join(' | '));
+    if(S.wx.hours&&S.wx.hours.length) out.push('Next hours (kt, 10/80/120 m, gust): '+S.wx.hours.map(h=>`${h.t} ${h.w10?.toFixed(1)}/${h.w80?.toFixed(1)}/${h.w120?.toFixed(1)} g${h.g?.toFixed(1)}`).join(' | '));
     const a=assessWx(j); if(a.rows.length) out.push('Assessment vs Manual 7.5: '+a.overall.toUpperCase()+' – '+a.rows.map(r=>`${r.name} ${r.status}`).join(', '));
   }
   sect('AIRCRAFT', FIELDSETS.aircraft.f); sect('CREW', FIELDSETS.crew.f);
@@ -485,7 +504,7 @@ function recordText(id){
   list.sections.forEach(sec=>{ out.push(''); out.push(`-- ${sec.h.toUpperCase()} --`);
     sec.items.forEach(([iid,t,ng])=>{ const st=l.items[iid]||{};
       const mark = st.done?`[x] ${st.t?hhmm(st.t):''}`:st.skip?'[N/A]':'[ ]';
-      out.push(`${mark} ${t}${ng?' (NO-GO)':''}`);
+      out.push(`${mark} ${t}${ng?' (Critical)':''}`);
       if(st.skip) out.push(`      N/A reason: ${st.skipReason||'(none given)'}`);
       if(st.note) out.push(`      Note: ${st.note}`); }); });
   if(l.notes){ out.push(''); out.push('-- NOTES --'); out.push(l.notes); }
@@ -516,7 +535,7 @@ async function fetchWx(lat,lon,place){
   setWxStatus('Fetching weather…');
   const cur='temperature_2m,dew_point_2m,precipitation,cloud_cover,visibility,wind_speed_10m,wind_direction_10m,wind_gusts_10m,wind_speed_80m,wind_speed_120m';
   const hr='wind_speed_10m,wind_speed_80m,wind_speed_120m,wind_gusts_10m,precipitation_probability,precipitation';
-  const url=`https://api.open-meteo.com/v1/forecast?latitude=${lat.toFixed(4)}&longitude=${lon.toFixed(4)}&current=${cur}&hourly=${hr}&wind_speed_unit=ms&timezone=auto&forecast_days=2`;
+  const url=`https://api.open-meteo.com/v1/forecast?latitude=${lat.toFixed(4)}&longitude=${lon.toFixed(4)}&current=${cur}&hourly=${hr}&wind_speed_unit=kn&timezone=auto&forecast_days=2`;
   try{
     const r=await withTimeout(fetch(url,{cache:'no-store'}),10000);
     if(!r.ok){ noSignal(`Weather service unavailable (HTTP ${r.status}): enter manually`); if($('#wxcard')) redrawWx(); return; }
@@ -581,7 +600,7 @@ document.addEventListener('click', e=>{
     case 'share': share(lid); break;
     case 'copy': copyDownload(lid); break;
     case 'reset': if(confirm('Reset this checklist? Ticks, notes and N/A reasons will be cleared (job details are kept).')){ delete S.lists[lid]; save(true); renderList(lid); toast('Checklist reset'); } break;
-    case 'jump': { const it=document.querySelector('.item.ng:not(.done)'); if(it){ const y=it.getBoundingClientRect().top+scrollY-200; scrollTo({top:y,behavior:'smooth'}); } break; }
+    case 'jump': { const it=document.querySelector('.item.ng:not(.done)') || document.querySelector('#lights'); if(it){ const y=it.getBoundingClientRect().top+scrollY-200; scrollTo({top:y,behavior:'smooth'}); } break; }
     case 'geo': useGeo(); break;
     case 'place': searchPlace($('#placeq').value); break;
     case 'pick': { const p=$('#results')._res[+a.dataset.i]; $('#results').innerHTML=''; const name=[p.name,p.admin2].filter(Boolean).join(', ');
@@ -604,7 +623,14 @@ window.addEventListener('offline', ()=>{ const o=$('#offl'); if(o) o.textContent
 window.addEventListener('pagehide', ()=>save(true));
 document.addEventListener('visibilitychange', ()=>{ if(document.visibilityState==='hidden') save(true); });
 
-if('serviceWorker' in navigator && location.protocol!=='file:'){ window.addEventListener('load', ()=>navigator.serviceWorker.register('sw.js').catch(()=>{})); }
+function showUpdateToast(){ const t=$('#toast'); t.textContent='🔄 Updated – tap to reload'; t.classList.add('tap'); t.classList.remove('hide'); clearTimeout(t._h); t.onclick=()=>location.reload(); }
+if('serviceWorker' in navigator && location.protocol!=='file:'){
+  const hadController = !!navigator.serviceWorker.controller; let updShown=false;
+  navigator.serviceWorker.addEventListener('controllerchange', ()=>{ if(hadController && !updShown){ updShown=true; showUpdateToast(); } });
+  window.addEventListener('load', ()=>navigator.serviceWorker.register('sw.js').then(reg=>{
+    document.addEventListener('visibilitychange', ()=>{ if(document.visibilityState==='visible') reg.update().catch(()=>{}); });
+  }).catch(()=>{}));
+}
 route();
 </script>
 </body>
