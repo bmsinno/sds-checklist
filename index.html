@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html lang="en-IE">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>SDS Checklists</title>
+<meta name="theme-color" content="#133c5d">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="SDS Checks">
+<meta name="format-detection" content="telephone=no">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="icon" type="image/png" href="icons/favicon-32.png">
+<style>
+:root{
+  --navy:#133c5d; --teal:#3c80a1; --teal2:#72adc4;
+  --bg:#ffffff; --bg2:#f1f5f8; --card:#ffffff; --text:#0b1620; --muted:#43525e; --line:#c9d4dc;
+  --ok:#0f7a35; --okbg:#e3f5e9; --amber:#9a5b00; --amberbg:#fff1d6; --red:#b3161b; --redbg:#fde7e7;
+  --done:#e6f3f8; --chk:#3c80a1; --hdr:#133c5d; --hdrtext:#fff; --input:#ffffff;
+  --shadow:0 1px 3px rgba(0,0,0,.12);
+}
+html.dark{
+  --bg:#0a1219; --bg2:#121e28; --card:#15232f; --text:#f3f7fa; --muted:#b4c3cf; --line:#2c3f4f;
+  --ok:#5fe08f; --okbg:#10361f; --amber:#ffc35c; --amberbg:#3a2a07; --red:#ff6b6b; --redbg:#3d1012;
+  --done:#173444; --chk:#72adc4; --hdr:#0d2a42; --input:#0f1a24; --shadow:none;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--bg);color:var(--text)}
+body{font:19px/1.4 -apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  padding-bottom:calc(24px + env(safe-area-inset-bottom));-webkit-text-size-adjust:100%}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+a{color:var(--teal)}
+html.dark a{color:var(--teal2)}
+.hdr{position:sticky;top:0;z-index:20;background:var(--hdr);color:var(--hdrtext);
+  padding:calc(6px + env(safe-area-inset-top)) 8px 6px;display:flex;align-items:center;gap:6px;min-height:60px}
+.hdr h1{font-size:20px;margin:0;flex:1;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hbtn{min-width:52px;min-height:48px;border:2px solid rgba(255,255,255,.35);background:transparent;color:#fff;border-radius:12px;font-size:17px;font-weight:600;padding:0 10px}
+.hdr.emerg{background:#9e1015}
+.wrap{max-width:640px;margin:0 auto;padding:12px}
+.logo{display:block;width:72%;max-width:320px;margin:10px auto 4px}
+.logo.rev{display:none} html.dark .logo{display:none} html.dark .logo.rev{display:block}
+.sub{text-align:center;color:var(--muted);font-size:16px;margin:0 0 12px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px;margin:12px 0;box-shadow:var(--shadow)}
+.card h2{font-size:19px;margin:0 0 8px;color:var(--navy)}
+html.dark .card h2{color:var(--teal2)}
+.tiles{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.tile{min-height:122px;border-radius:18px;border:2px solid var(--line);background:var(--card);padding:14px;text-align:left;display:flex;flex-direction:column;justify-content:space-between;box-shadow:var(--shadow)}
+.tile .ic{font-size:30px;line-height:1}
+.tile .tt{font-size:20px;font-weight:800;color:var(--navy)}
+html.dark .tile .tt{color:#fff}
+.tile .ts{font-size:15px;color:var(--muted);font-weight:600}
+.tile .bar{height:8px;background:var(--bg2);border-radius:5px;overflow:hidden;margin-top:6px}
+.tile .bar i{display:block;height:100%;background:var(--teal)}
+.tile.full{grid-column:1/-1;min-height:96px}
+.tile.emerg{background:#b3161b;border-color:#7d0d10;color:#fff;flex-direction:row;align-items:center;gap:14px;justify-content:flex-start}
+.tile.emerg .tt{color:#fff;font-size:22px}.tile.emerg .ts{color:#ffe1e1}
+.st-ok{color:var(--ok)!important}.st-red{color:var(--red)!important}
+.btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;min-height:56px;border-radius:14px;border:2px solid var(--teal);background:var(--teal);color:#fff;font-weight:700;font-size:19px;padding:8px 14px;margin:8px 0;text-decoration:none;text-align:center}
+.btn.sec{background:transparent;color:var(--teal);}
+html.dark .btn.sec{color:var(--teal2);border-color:var(--teal2)}
+.btn.navy{background:var(--navy);border-color:var(--navy)}
+.btn.red{background:var(--red);border-color:var(--red);color:#fff}
+.btn.small{min-height:48px;font-size:17px;width:auto;flex:1}
+.row{display:flex;gap:8px;flex-wrap:wrap}
+label.f{display:block;margin:10px 0 0;font-size:15px;font-weight:700;color:var(--muted)}
+.inp{display:block;width:100%;min-height:52px;border:2px solid var(--line);border-radius:12px;background:var(--input);padding:10px 12px;font-size:19px;margin-top:4px}
+textarea.inp{min-height:84px;resize:vertical}
+.inp:focus{outline:3px solid var(--teal2);border-color:var(--teal)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:0 10px}
+.sticky{position:sticky;top:60px;z-index:15;background:var(--bg);padding:8px 12px 6px;border-bottom:1px solid var(--line)}
+.prog{display:flex;align-items:center;gap:10px;font-weight:700;font-size:16px}
+.prog .pb{flex:1;height:14px;background:var(--bg2);border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.prog .pb i{display:block;height:100%;background:var(--teal);transition:width .2s}
+.banner{margin-top:8px;border-radius:12px;padding:10px 12px;font-weight:800;font-size:19px;display:flex;align-items:center;gap:8px}
+.banner small{display:block;font-weight:600;font-size:15px}
+.banner.red{background:#b3161b;color:#fff}
+.banner.ok{background:#0f7a35;color:#fff}
+.banner.amber{background:var(--amberbg);color:var(--amber);border:2px solid var(--amber)}
+.banner.info{background:var(--bg2);color:var(--muted)}
+.sec-h{font-size:15px;letter-spacing:.06em;text-transform:uppercase;color:var(--teal);font-weight:800;margin:22px 4px 6px}
+html.dark .sec-h{color:var(--teal2)}
+.item{background:var(--card);border:2px solid var(--line);border-radius:14px;margin:8px 0;overflow:hidden}
+.item.done{background:var(--done);border-color:var(--teal)}
+.item.skip{opacity:.75}
+.item.skip .txt{text-decoration:line-through}
+.item.ng.open{border-color:var(--red)}
+.tick{display:flex;align-items:center;gap:12px;width:100%;min-height:64px;padding:10px 12px;background:transparent;border:0;text-align:left}
+.box{flex:0 0 40px;height:40px;border-radius:10px;border:3px solid var(--muted);display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:900;color:transparent}
+.done .box{background:var(--chk);border-color:var(--chk);color:#fff}
+.skip .box{border-style:dashed}
+.skip .box::after{content:"–";color:var(--muted);font-size:26px}
+.txt{flex:1;font-size:19px;font-weight:600;line-height:1.3}
+.chip{display:inline-block;font-size:12px;font-weight:900;letter-spacing:.04em;padding:3px 7px;border-radius:7px;background:var(--red);color:#fff;vertical-align:2px;margin-left:4px;white-space:nowrap}
+.chip.ok{background:var(--ok)}
+.meta{display:flex;gap:6px;align-items:center;padding:0 10px 10px 64px;flex-wrap:wrap}
+.mbtn{min-height:48px;min-width:64px;padding:0 12px;border-radius:10px;border:2px solid var(--line);background:var(--bg2);font-size:16px;font-weight:700;color:var(--muted)}
+.mbtn.on{border-color:var(--teal);color:var(--teal)}
+.ts{font-size:14px;color:var(--muted);font-weight:700;margin-left:auto}
+.extra{padding:0 10px 10px}
+.extra .inp{font-size:17px;min-height:48px}
+.lnk{display:inline-flex;align-items:center;min-height:48px;padding:0 12px;border-radius:10px;border:2px solid var(--teal);color:var(--teal);font-weight:700;font-size:16px;text-decoration:none;background:transparent}
+html.dark .lnk{color:var(--teal2);border-color:var(--teal2)}
+.wx-status{font-size:15px;font-weight:700;color:var(--muted);margin:6px 0}
+.wx-status.warn{color:var(--amber)}
+.results button{display:block;width:100%;min-height:52px;text-align:left;margin:6px 0;border-radius:12px;border:2px solid var(--line);background:var(--bg2);padding:8px 12px;font-size:17px;font-weight:600}
+.lights{display:grid;grid-template-columns:1fr;gap:6px;margin-top:8px}
+.light{display:flex;justify-content:space-between;align-items:center;gap:8px;border-radius:10px;padding:8px 12px;font-weight:700;font-size:16px}
+.light.green{background:var(--okbg);color:var(--ok)}
+.light.amber{background:var(--amberbg);color:var(--amber)}
+.light.red{background:var(--redbg);color:var(--red);border:2px solid var(--red)}
+.light b{font-size:18px}
+table.hrs{width:100%;border-collapse:collapse;font-size:16px;margin-top:8px}
+table.hrs th,table.hrs td{border-bottom:1px solid var(--line);padding:6px 4px;text-align:center}
+table.hrs th{color:var(--muted);font-size:13px}
+.over{color:var(--red);font-weight:800}
+.complete{border:3px solid var(--ok);background:var(--okbg)}
+.complete h2{color:var(--ok)!important}
+/* emergency */
+.ecard{background:var(--card);border:3px solid #b3161b;border-radius:16px;margin:14px 0;overflow:hidden}
+.ecard h3{margin:0;background:#b3161b;color:#fff;font-size:22px;padding:12px 14px}
+.ecard .mem{font-size:24px;font-weight:900;line-height:1.25;padding:12px 14px 4px;color:var(--red)}
+.ecard ol{margin:6px 0 12px;padding:0 14px 0 40px;font-size:19px}
+.ecard li{margin:6px 0}
+.jump{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.jump a{min-height:48px;min-width:56px;display:flex;align-items:center;justify-content:center;border-radius:10px;background:#b3161b;color:#fff;font-weight:900;text-decoration:none;font-size:18px;padding:0 10px}
+.principle{background:#b3161b;color:#fff;border-radius:16px;padding:14px;font-size:21px;font-weight:800}
+.foot{color:var(--muted);font-size:14px;text-align:center;margin:20px 0}
+.hide{display:none!important}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom));transform:translateX(-50%);background:#0b1620;color:#fff;padding:12px 18px;border-radius:12px;font-weight:700;z-index:50;max-width:90%;text-align:center}
+@media (max-width:360px){.tiles{grid-template-columns:1fr}.grid2{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div id="toast" class="toast hide"></div>
+<script>
+'use strict';
+const APP_VERSION = '1.0.0';
+const MANUAL = 'SDS-OM-001 Operations Manual v0.1';
+const LIMITS = { mean: 8, gust: 10, tmin: 0, tmax: 35, visKm: 1, kp: 5 };   // Manual 7.5 SDS operating limits
+const GEOZONE_MAP = 'https://iaa-ie.maps.arcgis.com/apps/instant/basic/index.html?appid=0772db05b2bb488686d3678d8144ae66';
+const GEOZONE_PAGE = 'https://www.iaa.ie/general-aviation/drones/uas-geographic-zones';
+const ECCAIRS = 'https://aviationreporting.eu';
+const GZ = { href: GEOZONE_MAP, label: '🗺️ Open IAA geozone map' };
+
+/* ---------- Checklist content (from Operations Manual Appendix A, sections 7.5–7.8 and 9) ---------- */
+const LISTS = [
+ { id:'survey', title:'Site Survey', icon:'🧭', ref:'Manual A.1 / 7.3', fields:['location'],
+   sections:[
+   { h:'Desk survey', items:[
+     ['s1','Location, Eircode & what3words/grid recorded'],
+     ['s2','IAA geozone map checked – limits noted, screenshot saved',1,GZ],
+     ['s3','NOTAMs & TRAs checked',1],
+     ['s4','Nearby aerodromes, airstrips & helipads identified'],
+     ['s5','Protected sites checked (SPA/SAC, national parks, prisons)'],
+     ['s6','Operational category decided – reason recorded',1],
+     ['s7','Landowner / club / harbour master identified – permission requested in writing',1],
+     ['s8','Port / harbour jobs: bye-laws, ISPS access, VHF channel, vessel ETA, tides'] ]},
+   { h:'On site', items:[
+     ['s9','Primary take-off / landing site suitable',1],
+     ['s10','Alternate & emergency landing sites identified',1],
+     ['s11','Obstacles & heights recorded (power lines, trees, masts, cranes, buildings)'],
+     ['s12','People noted – public, workers, golfers, rights of way, roads (times & numbers)'],
+     ['s13','No risk of an assembly forming (if there is – not Open category)',1],
+     ['s14','RF / compass interference sources noted'],
+     ['s15','Cordon & sign positions set; crew position has VLOS of whole area'],
+     ['s16','Mobile coverage, nearest A&E and AED noted'],
+     ['s17','Wildlife / livestock noted; site photos taken'] ]} ]},
+ { id:'preflight', title:'Pre-flight', icon:'📋', ref:'Manual A.2 / 7.5–7.6', fields:['location','weather','aircraft','crew'], go:true,
+   sections:[
+   { h:'Documents & planning', items:[
+     ['p1','Operator registration, pilot certificate(s) & insurance valid and to hand',1],
+     ['p2','Written permissions to hand',1],
+     ['p3','Risk assessment approved; conditions understood',1],
+     ['p4','Geozones re-checked today',1,GZ],
+     ['p5','NOTAMs & TRAs re-checked today',1],
+     ['p6','IMSAFE – fit to fly',1] ]},
+   { h:'Weather (SDS limits, Manual 7.5)', items:[
+     ['p7','Mean wind ≤ 8 m/s at operating height',1],
+     ['p8','Gusts ≤ 10 m/s',1],
+     ['p9','No rain, drizzle, sleet, snow or fog',1],
+     ['p10','Visibility ≥ 1 km & enough for VLOS; cloud base above max height',1],
+     ['p11','Temperature 0–35 °C (below 10 °C: batteries pre-warmed)',1],
+     ['p12','Kp index ≤ 5',1],
+     ['p13','Daylight sufficient; sunset time noted',1] ]},
+   { h:'Site', items:[
+     ['p14','Site matches survey; new hazards recorded'],
+     ['p15','Take-off area set, cones/signage out, 5 m clear',1],
+     ['p16','Involved persons briefed; stop signal agreed',1],
+     ['p17','Site contact told of start; comms checked'] ]},
+   { h:'Aircraft & equipment', items:[
+     ['p18','Airframe, arms, gimbal & sensors inspected',1],
+     ['p19','Propellers undamaged & secure',1],
+     ['p20','Batteries ≥ 90%, undamaged, latched; spares ready',1],
+     ['p21','Controller & phone charged; DJI Fly updated; Do Not Disturb on'],
+     ['p22','SD card formatted with space'],
+     ['p23','Operator registration number displayed on aircraft',1],
+     ['p24','Remote ID loaded with operator number & active',1],
+     ['p25','First aid kit to hand; nearest AED known'] ]} ]},
+ { id:'pretakeoff', title:'Pre-takeoff', icon:'🚁', ref:'Manual A.2 / 7.6–7.7 – every battery', fields:[], go:true, quickwx:true,
+   sections:[
+   { h:'Final checks – every battery', items:[
+     ['t1','Battery latched; props secure',1],
+     ['t2','No warnings; compass & IMU OK (away from steel)',1],
+     ['t3','GNSS lock; home point recorded',1],
+     ['t4','Max altitude set – 120 m or zone limit if lower; max distance set',1],
+     ['t5','RTH altitude above highest obstacle',1],
+     ['t6','Signal-loss action set (RTH)',1],
+     ['t7','Low-battery alerts 30% / 20% – recover at 30%, land by 20%',1],
+     ['t8','Obstacle avoidance mode chosen'],
+     ['t9','Remote ID active',1],
+     ['t10','Area clear – no uninvolved people; airspace scanned',1],
+     ['t11','Hover check at 2–3 m for 10–15 s – all normal',1],
+     ['t12','Flight Log started'] ]} ]},
+ { id:'postflight', title:'Post-flight', icon:'🛬', ref:'Manual A.3 / 7.8', fields:['flights'],
+   sections:[
+   { h:'After landing', items:[
+     ['f1','Motors stopped; battery out before anyone approaches'],
+     ['f2','Flight Log completed (times, duration, max height, batteries, remarks)'],
+     ['f3','Aircraft & batteries inspected'],
+     ['f4','Defects to Maintenance Log; battery cycle counts updated'],
+     ['f5','Footage verified & backed up – two copies'],
+     ['f6','Privacy review items noted'],
+     ['f7','Site cleared'],
+     ['f8','Site contact told of finish'],
+     ['f9','Occurrence? Incident flag ticked, report raised, IAA/ECCAIRS need assessed (72 h)'],
+     ['f10','Debrief notes added to the Job'] ]} ]}
+];
+const EMERG = [
+ ['E1','Fly-away / uncommanded flight','Switch flight mode & trigger RTH',
+   ['No response: track it – note last position, height, heading, battery.','Warn people in its path.','Heading for an aerodrome or controlled airspace: phone the ATC unit immediately.','Report to the IAA via ECCAIRS; tell the Gardaí if a public risk remains.']],
+ ['E2','Lost link (C2) / RTH','Expect failsafe RTH – point controller at aircraft, move to clear line of sight',
+   ['Watch the RTH path for obstacles; take over when the link returns.','If RTH would cross people or structures: regain control, fly manually or land at the emergency landing site.']],
+ ['E3','Low battery','Land now at the nearest safe site',
+   ['Forced landing: steer sideways, clear of people, water and roads.']],
+ ['E4','GNSS loss / ATTI mode','Fly attitude manually – keep level – return under visual control',
+   ['Expect drift downwind.','Move away from steel structures.','Land as soon as practicable – RTH may be unavailable.']],
+ ['E5','Manned aircraft encounter','Descend immediately & give way',
+   ['Move away from the aircraft’s track; land if necessary.','Report to the IAA via ECCAIRS.']],
+ ['E6','Person enters the area','Hold or move away – do NOT overfly the person',
+   ['Pause until clear.','If a crowd gathers – land.']],
+ ['E7','Crash or injury','Stop all flying – make the scene safe',
+   ['Remove the battery if safe; isolate damaged batteries (fire risk).','Casualty: first-responder skills – scene safety, DR ABC, call 112/999, control bleeding, treat for shock, AED if needed.','Lithium battery fire: keep clear, avoid fumes; dry powder/CO₂ or sand; fire service if it spreads.','Preserve evidence – don’t move wreckage unless it is a further hazard.','Accident / serious incident: notify IAA & AAIU immediately, plus Gardaí, client/site contact and insurer.']],
+ ['E8','Lost aircraft','Use last known position (DJI Fly “Find My Drone”) & logs',
+   ['Search only where safe and permitted.','Tell the landowner / site contact – a lost aircraft in a navigable channel may be a hazard.','Report the loss to the IAA and insurer; record it in Occurrences.']]
+];
+const FIELDSETS = {
+ location:{ h:'Site / location', f:[
+   ['site','Site name'],['address','Address / Eircode','ta'],['takeoff','Take-off / landing point'],['altland','Alternate / emergency landing site'],
+   ['permission','Landowner permission – from whom'],['hospital','Emergency access / nearest A&E'],['aed','Nearest AED'],
+   ['geozone','Geozone result','sel',['','No zone – Open category OK','Zone – conditions apply','Prohibited / authorisation needed']],
+   ['zonename','Zone name & conditions','ta'],['notams','NOTAMs / TRAs checked','',null,'e.g. Checked 08:10 – nothing relevant'] ]},
+ aircraft:{ h:'Aircraft', f:[ ['aircraft','Aircraft'],['batteries','Battery IDs & charge %','',null,'e.g. B1 100%, B2 98%, B3 96%'],['firmware','Firmware (aircraft / RC / app)'] ]},
+ crew:{ h:'Crew', f:[ ['observer','Observer name'],['crewother','Others briefed / involved persons'] ]},
+ flights:{ h:'Flights', f:[ ['nflights','Flights flown','num'],['airtime','Total air time (min)','num'],['maxht','Max height flown (m)','num'],['battused','Batteries used'] ]}
+};
+const WXF = [ // key,label,unit
+ ['hPlan','Planned max height','m'],['w10','Wind 10 m','m/s'],['wH','Wind at op. height','m/s'],['gust','Gusts','m/s'],['dir','Wind direction','°'],
+ ['temp','Temperature','°C'],['cloud','Cloud cover','%'],['cbase','Cloud base (est.)','m'],['vis','Visibility','km'],
+ ['precip','Precipitation now','mm'],['pprob','Rain chance next 3 h','%'],['kp','Kp index','']
+];
+
+/* ---------- State ---------- */
+const KEY = 'sds-checklist-state-v1';
+const pad = n => String(n).padStart(2,'0');
+const localDT = d => `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+const hhmm = t => { const d=new Date(t); return `${pad(d.getHours())}:${pad(d.getMinutes())}`; };
+const fmtDT = t => { const d=new Date(t); return `${pad(d.getDate())}/${pad(d.getMonth()+1)}/${d.getFullYear()} ${pad(d.getHours())}:${pad(d.getMinutes())}`; };
+function freshJob(){ return { ref:'', dt:localDT(new Date()), pilot:'Brian Sinnott', aircraft:'DJI Air 3S', hPlan:'120' }; }
+function freshState(){ return { job:freshJob(), lists:{}, wx:{}, theme:null }; }
+let S;
+try { S = JSON.parse(localStorage.getItem(KEY)) || freshState(); } catch(e){ S = freshState(); }
+S.job = S.job || freshJob(); S.lists = S.lists || {}; S.wx = S.wx || {};
+let saveT;
+function save(now){ clearTimeout(saveT); const w=()=>{ try{ localStorage.setItem(KEY, JSON.stringify(S)); }catch(e){} }; if(now) w(); else saveT=setTimeout(w,250); }
+function L(id){ return S.lists[id] || (S.lists[id] = { items:{}, notes:'', started:null, completed:null }); }
+function I(id,iid){ const l=L(id); return l.items[iid] || (l.items[iid] = {}); }
+function applyTheme(){ const dark = S.theme ? S.theme==='dark' : false; document.documentElement.classList.toggle('dark', dark);
+  document.querySelector('meta[name=theme-color]').setAttribute('content', dark ? '#0d2a42' : '#133c5d'); }
+applyTheme();
+
+/* ---------- Helpers ---------- */
+const $ = (s,el=document)=>el.querySelector(s);
+const esc = s => String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function toast(msg){ const t=$('#toast'); t.textContent=msg; t.classList.remove('hide'); clearTimeout(t._h); t._h=setTimeout(()=>t.classList.add('hide'),2600); }
+const allItems = list => list.sections.flatMap(s=>s.items.map(([id,t,ng,link])=>({id,t,ng:!!ng,link,h:s.h})));
+function stats(list){
+  const items = allItems(list), l = L(list.id);
+  let done=0, skip=0; const ngOpen=[];
+  items.forEach(it=>{ const st=l.items[it.id]||{}; if(st.done) done++; else if(st.skip) skip++; if(it.ng && !st.done) ngOpen.push(it); });
+  return { total:items.length, done, skip, resolved:done+skip, ngOpen, complete:(done+skip)===items.length };
+}
+const num = v => (v===''||v==null||isNaN(parseFloat(v))) ? null : parseFloat(v);
+const compass = d => d==null ? '' : ['N','NNE','NE','ENE','E','ESE','SE','SSE','S','SSW','SW','WSW','W','WNW','NW','NNW'][Math.round(((d%360)+360)%360/22.5)%16];
+
+/* ---------- Weather assessment vs Manual 7.5 ---------- */
+function assessWx(j){
+  const rows=[]; const add=(name,val,status,msg)=>rows.push({name,val,status,msg});
+  const w10=num(j.w10), wH=num(j.wH), g=num(j.gust), t=num(j.temp), v=num(j.vis), p=num(j.precip), pp=num(j.pprob), kp=num(j.kp), cb=num(j.cbase), h=num(j.hPlan)||120;
+  const mean = [w10,wH].filter(x=>x!=null); 
+  if(mean.length){ const m=Math.max(...mean); add('Mean wind', m.toFixed(1)+' m/s', m>LIMITS.mean?'red':m>LIMITS.mean*0.8?'amber':'green', `limit ${LIMITS.mean} m/s at height`); }
+  if(g!=null) add('Gusts', g.toFixed(1)+' m/s', g>LIMITS.gust?'red':g>LIMITS.gust*0.85?'amber':'green', `limit ${LIMITS.gust} m/s`);
+  if(p!=null||pp!=null){ const st = (p!=null&&p>0)?'red':(pp!=null&&pp>=50)?'amber':(pp!=null&&pp>=20)?'amber':'green';
+    add('Precipitation', (p!=null?p+' mm':'–')+(pp!=null?` · ${pp}% next 3 h`:''), st, 'none allowed'); }
+  if(v!=null) add('Visibility', v+' km', v<LIMITS.visKm?'red':v<3?'amber':'green', '≥ 1 km');
+  if(cb!=null) add('Cloud base (est.)', Math.round(cb)+' m', cb<h?'red':cb<h+150?'amber':'green', `above ${h} m`);
+  if(t!=null) add('Temperature', t+' °C', (t<LIMITS.tmin||t>LIMITS.tmax)?'red':t<10?'amber':'green', t<10&&t>=0?'pre-warm batteries':'0–35 °C');
+  if(kp!=null) add('Kp index', String(kp), kp>LIMITS.kp?'red':kp>=4.67?'amber':'green', '≤ 5');
+  const overall = rows.some(r=>r.status==='red')?'red':rows.some(r=>r.status==='amber')?'amber':rows.length?'green':'none';
+  return { rows, overall, red: rows.filter(r=>r.status==='red') };
+}
+
+/* ---------- Router ---------- */
+function route(){ const h=(location.hash||'#home').slice(1); 
+  if(h==='emergency') renderEmergency(); else if(LISTS.find(l=>l.id===h)) renderList(h); else renderHome();
+  window.scrollTo(0,0); }
+window.addEventListener('hashchange', route);
+
+function header(title, back, cls=''){
+  return `<header class="hdr ${cls}">${back?`<button class="hbtn" data-act="home" aria-label="Back to home">‹ Home</button>`:''}
+  <h1>${esc(title)}</h1><button class="hbtn" data-act="theme" aria-label="Toggle dark mode">${document.documentElement.classList.contains('dark')?'☀️':'🌙'}</button></header>`;
+}
+
+/* ---------- Home ---------- */
+function renderHome(){
+  const j=S.job;
+  const tiles = LISTS.map(l=>{ const s=stats(l); const pct=Math.round(100*s.resolved/s.total);
+    const status = s.complete ? `<span class="st-ok">✓ Complete</span>` : s.resolved ? `${s.resolved}/${s.total} done` : `${s.total} items`;
+    return `<button class="tile" data-go="${l.id}"><span class="ic">${l.icon}</span><span class="tt">${l.title}</span>
+      <span><span class="ts">${status}</span><span class="bar"><i style="width:${pct}%"></i></span></span></button>`; }).join('');
+  $('#app').innerHTML = header('SDS Checklists', false) + `<main class="wrap">
+    <img class="logo" src="icons/logo.png" alt="Sinnott Drone Services"><img class="logo rev" src="icons/logo-rev.png" alt="Sinnott Drone Services">
+    <p class="sub">Field checklists · DJI Air 3S · EASA Open category</p>
+    <div class="card"><h2>Current job</h2>
+      <div style="font-size:20px;font-weight:700">${esc(j.ref||j.site||'No job reference yet')}</div>
+      <div style="color:var(--muted);font-size:16px">${esc(j.dt?fmtDT(j.dt):'')} · ${esc(j.pilot||'')}</div>
+      <div class="row" style="margin-top:6px"><button class="btn sec small" data-act="newjob">＋ New job</button></div></div>
+    <div class="tiles">${tiles}
+      <button class="tile full emerg" data-go="emergency"><span class="ic" style="font-size:40px">🚨</span><span><span class="tt">Emergency Procedures</span><br><span class="ts">E1–E8 quick cards · read-only</span></span></button>
+    </div>
+    <p class="foot">Sinnott Drone Services · ${MANUAL}<br>App v${APP_VERSION} · <span id="offl">${navigator.onLine?'Online':'Offline'}</span> · saved on this phone only</p>
+  </main>`;
+}
+
+/* ---------- Fields ---------- */
+function fieldHTML([k,label,type,opts,ph]){
+  const v = S.job[k]??'';
+  if(type==='ta') return `<label class="f" for="j_${k}">${label}</label><textarea class="inp" id="j_${k}" data-k="${k}" placeholder="${esc(ph||'')}">${esc(v)}</textarea>`;
+  if(type==='sel') return `<label class="f" for="j_${k}">${label}</label><select class="inp" id="j_${k}" data-k="${k}">${opts.map(o=>`<option ${o===v?'selected':''} value="${esc(o)}">${o||'— select —'}</option>`).join('')}</select>`;
+  return `<label class="f" for="j_${k}">${label}</label><input class="inp" id="j_${k}" data-k="${k}" value="${esc(v)}" ${type==='num'?'inputmode="decimal"':''} placeholder="${esc(ph||'')}" autocomplete="off">`;
+}
+function jobCard(){
+  return `<div class="card"><h2>Job</h2>
+   ${fieldHTML(['ref','Job ref / site'])}
+   <div class="grid2">${fieldHTML(['dt','Date & time'])}${fieldHTML(['pilot','Pilot'])}</div>
+   <div class="grid2">${wxInput('w10','Wind (m/s)')}${wxInput('temp','Temp (°C)')}</div></div>`.replace('id="j_dt" data-k="dt"','id="j_dt" data-k="dt" type="datetime-local"');
+}
+function wxInput(k,label){ return `<label class="f">${label}</label><input class="inp" data-k="${k}" value="${esc(S.job[k]??'')}" inputmode="decimal" autocomplete="off">`; }
+function fieldset(name){
+  if(name==='weather') return weatherCard();
+  const fs=FIELDSETS[name];
+  let extra='';
+  if(name==='location') extra=`<div class="row" style="margin-top:10px"><a class="lnk" href="${GEOZONE_MAP}" target="_blank" rel="noopener">🗺️ IAA geozone map</a><a class="lnk" href="${GEOZONE_PAGE}" target="_blank" rel="noopener">IAA geozones page</a></div>`;
+  return `<div class="card"><h2>${fs.h}</h2>${fs.f.map(fieldHTML).join('')}${extra}</div>`;
+}
+function weatherCard(){
+  const wx=S.wx;
+  const inputs = WXF.map(([k,l,u])=>`<div><label class="f">${l}${u?` (${u})`:''}</label><input class="inp" data-k="${k}" value="${esc(S.job[k]??'')}" inputmode="decimal" autocomplete="off"></div>`).join('');
+  return `<div class="card" id="wxcard"><h2>Weather</h2>
+    <div class="row"><button class="btn small navy" data-act="geo">📍 Use my location</button><button class="btn small sec" data-act="wxrefresh" ${wx.lat==null?'disabled style="opacity:.5"':''}>↻ Refresh</button></div>
+    <div class="row"><input class="inp" id="placeq" placeholder="Search place, e.g. Woodenbridge" style="flex:1" autocomplete="off" enterkeyhint="search"><button class="btn small sec" data-act="place" style="flex:0 0 auto;margin:4px 0 0">Search</button></div>
+    <div class="results" id="results"></div>
+    <div class="wx-status" id="wxstatus">${wxStatusText()}</div>
+    <div class="grid2">${inputs}</div>
+    <label class="f">Weather remarks</label><textarea class="inp" data-k="wxremarks">${esc(S.job.wxremarks||'')}</textarea>
+    <div id="hours">${hoursHTML()}</div>
+    <div class="lights" id="lights"></div>
+    <p style="font-size:14px;color:var(--muted)">Limits from Manual 7.5: mean wind ≤ 8 m/s and gusts ≤ 10 m/s at operating height. Forecast gusts are at 10 m – expect more aloft. All fields can be edited.<br>Weather data: <a href="https://open-meteo.com/" target="_blank" rel="noopener">Open-Meteo.com</a> (CC BY 4.0) · Kp: NOAA SWPC.</p></div>`;
+}
+function wxStatusText(){ const w=S.wx; if(w.error) return `<span class="warn">⚠️ ${esc(w.error)}</span>`;
+  if(!w.fetchedAt) return 'Enter a location to auto-fill, or type values in.';
+  return `${esc(w.source||'')}${w.place?` · ${esc(w.place)}`:''} (${w.lat.toFixed(3)}, ${w.lon.toFixed(3)})${num(S.job.dir)!=null?` · wind from ${compass(num(S.job.dir))}`:''}${w.kpSource?`<br>${esc(w.kpSource)}`:''}`; }
+function hoursHTML(){ const h=S.wx.hours; if(!h||!h.length) return '';
+  const c=(v,lim)=>v==null?'–':`<span class="${v>lim?'over':''}">${v.toFixed(1)}</span>`;
+  return `<table class="hrs"><tr><th>Time</th><th>10 m</th><th>80 m</th><th>120 m</th><th>Gust</th><th>Rain %</th></tr>${h.map(r=>`<tr><td><b>${r.t}</b></td><td>${c(r.w10,8)}</td><td>${c(r.w80,8)}</td><td>${c(r.w120,8)}</td><td>${c(r.g,10)}</td><td>${r.pp??'–'}</td></tr>`).join('')}</table>`; }
+function lightsHTML(){ const a=assessWx(S.job); if(!a.rows.length) return '';
+  const head = a.overall==='red' ? `<div class="light red"><b>⛔ WEATHER NO-GO</b><span>${a.red.map(r=>r.name).join(', ')}</span></div>`
+    : a.overall==='amber' ? `<div class="light amber"><b>⚠️ Weather – caution</b><span>near limits</span></div>` : `<div class="light green"><b>✅ Weather within limits</b></div>`;
+  return head + a.rows.map(r=>`<div class="light ${r.status}"><span>${r.name}: <b>${esc(r.val)}</b></span><span style="font-size:14px">${esc(r.msg)}</span></div>`).join(''); }
+
+/* ---------- List screen ---------- */
+function renderList(id){
+  const list = LISTS.find(l=>l.id===id), l=L(id);
+  if(!l.started){ l.started=Date.now(); save(); }
+  const sec = list.sections.map(s=>`<div class="sec-h">${esc(s.h)}</div>`+s.items.map(([iid,t,ng,link])=>itemHTML(id,iid,t,ng,link)).join('')).join('');
+  $('#app').innerHTML = header(list.title, true) + `<div class="sticky" id="stk"></div><main class="wrap">
+    <div style="font-size:14px;color:var(--muted);margin:4px">${list.ref} · started ${hhmm(l.started)}</div>
+    ${jobCard()}
+    ${list.fields.map(fieldset).join('')}
+    ${list.quickwx?`<div class="card"><h2>Weather</h2><div class="lights" id="lights"></div><a class="btn sec" href="#preflight">Check / refresh weather in Pre-flight</a></div>`:''}
+    ${sec}
+    <div class="card"><h2>General notes</h2><textarea class="inp" data-ln="notes" placeholder="Anything else for the record">${esc(l.notes||'')}</textarea></div>
+    <div id="donecard"></div>
+    <button class="btn" data-act="share">⇪ Share / Save record</button>
+    <button class="btn sec" data-act="copy">Copy & download .txt</button>
+    <button class="btn sec" data-act="reset" style="border-color:var(--red);color:var(--red)">Reset this checklist</button>
+  </main>`;
+  $('#app').dataset.list=id;
+  refresh();
+}
+function itemHTML(lid,iid,t,ng,link){
+  const st=I(lid,iid); const cls=['item', ng?'ng':'', st.done?'done':'', st.skip?'skip':''].join(' ');
+  return `<div class="${cls}" id="it_${iid}" data-i="${iid}">
+    <button class="tick" data-act="tick" aria-pressed="${!!st.done}"><span class="box">✓</span><span class="txt">${esc(t)}${ng?' <span class="chip">NO-GO</span>':''}</span></button>
+    <div class="meta"><button class="mbtn ${st.note?'on':''}" data-act="note">📝 Note</button>${ng?'':`<button class="mbtn ${st.skip?'on':''}" data-act="skip">N/A</button>`}
+     ${link?`<a class="lnk" href="${link.href}" target="_blank" rel="noopener">${link.label}</a>`:''}
+     <span class="ts">${st.done&&st.t?'✓ '+hhmm(st.t):st.skip?'N/A':''}</span></div>
+    <div class="extra ${st.note||st.showNote?'':'hide'}" data-x="note"><input class="inp" data-n="note" value="${esc(st.note||'')}" placeholder="Note"></div>
+    <div class="extra ${st.skip?'':'hide'}" data-x="skip"><input class="inp" data-n="skipReason" value="${esc(st.skipReason||'')}" placeholder="Reason for N/A (required for record)"></div>
+  </div>`;
+}
+function refresh(){
+  const id=$('#app').dataset.list; const list=LISTS.find(l=>l.id===id); if(!list) return;
+  const s=stats(list), l=L(id), pct=Math.round(100*s.resolved/s.total);
+  const wxa = (list.go) ? assessWx(S.job) : {red:[],overall:'none'};
+  let banner;
+  const nogo = s.ngOpen.length>0 || wxa.red.length>0;
+  if(nogo){
+    const parts=[]; if(s.ngOpen.length) parts.push(`${s.ngOpen.length} NO-GO item${s.ngOpen.length>1?'s':''} not ticked`); if(wxa.red.length) parts.push('weather: '+wxa.red.map(r=>r.name).join(', '));
+    banner=`<div class="banner red" data-act="jump"><span style="white-space:nowrap">⛔ NO-GO</span><small>${esc(parts.join(' · '))}</small></div>`;
+  } else if(s.complete){
+    banner = list.go ? `<div class="banner ok">✅ READY TO FLY</div>` : `<div class="banner ok">✅ ${esc(list.title)} complete</div>`;
+  } else banner = `<div class="banner ${list.go?'amber':'info'}">${list.go?'All NO-GO items ticked':'In progress'}<small>${s.total-s.resolved} item(s) left</small></div>`;
+  $('#stk').innerHTML = `<div class="prog"><div class="pb"><i style="width:${pct}%"></i></div><span>${s.resolved}/${s.total}</span></div>${banner}`;
+  const lg=$('#lights'); if(lg) lg.innerHTML=lightsHTML();
+  if(s.complete && !l.completed){ l.completed=Date.now(); save(); }
+  if(!s.complete && l.completed){ l.completed=null; save(); }
+  $('#donecard').innerHTML = s.complete ? `<div class="card complete"><h2>${nogo?'⛔ Checklist complete – but NO-GO':'✅ Checklist complete'}</h2>
+     <div style="font-size:16px;color:var(--muted)">Completed ${fmtDT(l.completed)} · ${s.done} ticked${s.skip?`, ${s.skip} N/A`:''}</div>
+     <button class="btn" data-act="share">⇪ Share / Save record</button></div>` : '';
+}
+function updateItem(iid){ const id=$('#app').dataset.list; const list=LISTS.find(l=>l.id===id); const it=allItems(list).find(x=>x.id===iid);
+  const el=$('#it_'+iid); const tmp=document.createElement('div'); tmp.innerHTML=itemHTML(id,iid,it.t,it.ng,it.link); el.replaceWith(tmp.firstElementChild); refresh(); }
+
+/* ---------- Emergency ---------- */
+function renderEmergency(){
+  $('#app').innerHTML = header('🚨 Emergency', true, 'emerg') + `<main class="wrap">
+   <div class="principle">The aircraft is expendable – people are not. Steer away from people first. Shout a warning. Note time, position & last telemetry.</div>
+   <a class="btn red" href="tel:112" style="font-size:24px;min-height:64px">📞 Call 112</a>
+   <div class="jump">${EMERG.map(e=>`<a href="#emergency" data-jump="${e[0]}">${e[0]}</a>`).join('')}</div>
+   ${EMERG.map(([n,t,mem,steps])=>`<section class="ecard" id="${n}"><h3>${n} · ${esc(t)}</h3><div class="mem">${esc(mem)}</div><ol>${steps.map(s=>`<li>${esc(s)}</li>`).join('')}</ol></section>`).join('')}
+   <div class="card"><h2>Reporting</h2><ul style="margin:0;padding-left:22px"><li>Mandatory reports to the IAA via ECCAIRS within 72 h.</li><li>Accident / serious incident: IAA, AAIU & Gardaí immediately.</li><li>Log every occurrence in Notion within 24 h.</li></ul>
+   <a class="btn sec" href="${ECCAIRS}" target="_blank" rel="noopener">ECCAIRS reporting portal</a></div>
+   <p class="foot">Memory items in red. From ${MANUAL}, section 9.</p></main>`;
+}
+
+/* ---------- Record ---------- */
+function recordText(id){
+  const list=LISTS.find(l=>l.id===id), l=L(id), s=stats(list), j=S.job, wxa=list.go?assessWx(j):{red:[]};
+  const out=[]; const line=(k,v)=>{ if(v!==undefined&&v!==null&&String(v).trim()!=='') out.push(`${k}: ${v}`); };
+  out.push('SINNOTT DRONE SERVICES'); out.push(`${list.title.toUpperCase()} CHECKLIST RECORD`); out.push('='.repeat(34));
+  line('Job ref / site', j.ref); line('Date / time', j.dt?fmtDT(j.dt):''); line('Pilot', j.pilot); line('Observer', j.observer); line('Aircraft', j.aircraft);
+  line('Started', l.started?fmtDT(l.started):''); line('Completed', l.completed?fmtDT(l.completed):'NOT COMPLETE');
+  const nogo = s.ngOpen.length||wxa.red.length;
+  out.push(`STATUS: ${nogo?'NO-GO':(s.complete?(list.go?'READY TO FLY':'COMPLETE'):'IN PROGRESS')} (${s.done} ticked, ${s.skip} N/A, ${s.total-s.resolved} open of ${s.total})`);
+  if(s.ngOpen.length) out.push('  NO-GO items open: '+s.ngOpen.map(i=>i.t).join('; '));
+  if(wxa.red.length) out.push('  Weather over limits: '+wxa.red.map(r=>`${r.name} ${r.val}`).join('; '));
+  const sect=(title,pairs)=>{ const rows=pairs.filter(([k])=>j[k]!=null&&String(j[k]).trim()!==''); if(!rows.length) return; out.push(''); out.push(`-- ${title} --`); rows.forEach(([k,lab])=>out.push(`${lab}: ${j[k]}`)); };
+  sect('SITE / LOCATION', FIELDSETS.location.f);
+  const wxRows = WXF.filter(([k])=>j[k]!=null&&String(j[k]).trim()!=='');
+  if(wxRows.length||j.wxremarks){ out.push(''); out.push('-- WEATHER --');
+    if(S.wx.fetchedAt) out.push(`Source: ${S.wx.source}${S.wx.place?' – '+S.wx.place:''} (${S.wx.lat.toFixed(3)}, ${S.wx.lon.toFixed(3)})`);
+    if(S.wx.kpSource) out.push(`Kp source: ${S.wx.kpSource}`);
+    wxRows.forEach(([k,lab,u])=>{ const auto=S.wx.auto&&S.wx.auto[k]; const ed = (auto!=null && String(auto)!==String(j[k])) ? ' (edited)' : (auto==null&&S.wx.fetchedAt&&k!=='hPlan'?' (manual)':'');
+      out.push(`${lab}: ${j[k]}${u?' '+u:''}${k==='dir'&&num(j[k])!=null?' '+compass(num(j[k])):''}${ed}`); });
+    if(j.wxremarks) out.push(`Remarks: ${j.wxremarks}`);
+    if(S.wx.hours&&S.wx.hours.length) out.push('Next hours (m/s, 10/80/120 m, gust): '+S.wx.hours.map(h=>`${h.t} ${h.w10?.toFixed(1)}/${h.w80?.toFixed(1)}/${h.w120?.toFixed(1)} g${h.g?.toFixed(1)}`).join(' | '));
+    const a=assessWx(j); if(a.rows.length) out.push('Assessment vs Manual 7.5: '+a.overall.toUpperCase()+' – '+a.rows.map(r=>`${r.name} ${r.status}`).join(', '));
+  }
+  sect('AIRCRAFT', FIELDSETS.aircraft.f); sect('CREW', FIELDSETS.crew.f);
+  if(id==='postflight') sect('FLIGHTS', FIELDSETS.flights.f);
+  list.sections.forEach(sec=>{ out.push(''); out.push(`-- ${sec.h.toUpperCase()} --`);
+    sec.items.forEach(([iid,t,ng])=>{ const st=l.items[iid]||{};
+      const mark = st.done?`[x] ${st.t?hhmm(st.t):''}`:st.skip?'[N/A]':'[ ]';
+      out.push(`${mark} ${t}${ng?' (NO-GO)':''}`);
+      if(st.skip) out.push(`      N/A reason: ${st.skipReason||'(none given)'}`);
+      if(st.note) out.push(`      Note: ${st.note}`); }); });
+  if(l.notes){ out.push(''); out.push('-- NOTES --'); out.push(l.notes); }
+  out.push(''); out.push(`Generated ${fmtDT(Date.now())} · SDS Checklists v${APP_VERSION} · ${MANUAL}`);
+  return out.join('\n');
+}
+function fileName(id){ const d=new Date(); const ref=(S.job.ref||'job').replace(/[^\w-]+/g,'_').slice(0,30);
+  return `SDS_${id}_${d.getFullYear()}${pad(d.getMonth()+1)}${pad(d.getDate())}-${pad(d.getHours())}${pad(d.getMinutes())}_${ref}.txt`; }
+async function copyDownload(id, quiet){
+  const txt=recordText(id); let copied=false;
+  try{ await navigator.clipboard.writeText(txt); copied=true; }catch(e){}
+  try{ const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([txt],{type:'text/plain'})); a.download=fileName(id); document.body.appendChild(a); a.click(); setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},1000); }catch(e){}
+  toast(copied?'Record copied & .txt downloaded':'.txt downloaded');
+}
+async function share(id){
+  const list=LISTS.find(l=>l.id===id); const txt=recordText(id);
+  if(navigator.share){ try{ await navigator.share({ title:`SDS ${list.title} record – ${S.job.ref||''}`.trim(), text:txt }); return; }
+    catch(e){ if(e && e.name==='AbortError') return; } }
+  copyDownload(id);
+}
+
+/* ---------- Weather fetch ---------- */
+function withTimeout(p,ms){ return Promise.race([p, new Promise((_,r)=>setTimeout(()=>r(new Error('timeout')),ms))]); }
+function setWxStatus(html){ const el=$('#wxstatus'); if(el) el.innerHTML=html; }
+function noSignal(msg){ S.wx.error=msg||'No signal: enter manually'; save(); setWxStatus(wxStatusText()); }
+async function fetchWx(lat,lon,place){
+  if(!navigator.onLine){ noSignal(); return; }
+  setWxStatus('Fetching weather…');
+  const cur='temperature_2m,dew_point_2m,precipitation,cloud_cover,visibility,wind_speed_10m,wind_direction_10m,wind_gusts_10m,wind_speed_80m,wind_speed_120m';
+  const hr='wind_speed_10m,wind_speed_80m,wind_speed_120m,wind_gusts_10m,precipitation_probability,precipitation';
+  const url=`https://api.open-meteo.com/v1/forecast?latitude=${lat.toFixed(4)}&longitude=${lon.toFixed(4)}&current=${cur}&hourly=${hr}&wind_speed_unit=ms&timezone=auto&forecast_days=2`;
+  try{
+    const r=await withTimeout(fetch(url,{cache:'no-store'}),10000);
+    if(!r.ok){ noSignal(`Weather service unavailable (HTTP ${r.status}): enter manually`); if($('#wxcard')) redrawWx(); return; }
+    const d=await r.json();
+    const c=d.current||{}, H=d.hourly||{}; const nowKey=(c.time||'').slice(0,13); let idx=(H.time||[]).findIndex(t=>t.slice(0,13)===nowKey); if(idx<0) idx=0;
+    const hours=[]; for(let k=idx;k<=idx+3&&k<(H.time||[]).length;k++) hours.push({ t:k===idx?'Now':H.time[k].slice(11,16), w10:H.wind_speed_10m?.[k], w80:H.wind_speed_80m?.[k], w120:H.wind_speed_120m?.[k], g:H.wind_gusts_10m?.[k], pp:H.precipitation_probability?.[k] });
+    const pp3 = Math.max(...[1,2,3].map(o=>H.precipitation_probability?.[idx+o]).filter(x=>x!=null), H.precipitation_probability?.[idx]??0);
+    const h=num(S.job.hPlan)||120; const w80=c.wind_speed_80m, w120=c.wind_speed_120m, w10=c.wind_speed_10m;
+    let wH = h<=10?w10 : h<=80 ? w10+(w80-w10)*(h-10)/70 : w80+(w120-w80)*Math.min(1,(h-80)/40);
+    const r1=x=>x==null||isNaN(x)?'':String(Math.round(x*10)/10);
+    const auto = { w10:r1(w10), wH:r1(wH), gust:r1(c.wind_gusts_10m), dir:c.wind_direction_10m!=null?String(Math.round(c.wind_direction_10m)):'', temp:r1(c.temperature_2m),
+      cloud:c.cloud_cover!=null?String(c.cloud_cover):'', cbase:(c.cloud_cover>5&&c.temperature_2m!=null&&c.dew_point_2m!=null)?String(Math.max(0,Math.round((c.temperature_2m-c.dew_point_2m)*125))):'',
+      vis:c.visibility!=null?r1(c.visibility/1000):'', precip:c.precipitation!=null?String(c.precipitation):'', pprob:isFinite(pp3)?String(pp3):'' };
+    Object.assign(S.job, auto);
+    const t=new Date(); S.wx = Object.assign(S.wx, { lat, lon, place:place||S.wx.place||'', fetchedAt:t.getTime(), source:`Open-Meteo, fetched ${hhmm(t)}`, hours, auto, w80, w120, error:null });
+    save(true);
+    fetchKp();
+  }catch(e){ noSignal(); }
+  if($('#wxcard')) redrawWx();
+}
+async function fetchKp(){
+  try{ const r=await withTimeout(fetch('https://services.swpc.noaa.gov/products/noaa-planetary-k-index.json',{cache:'no-store'}),8000); const d=await r.json();
+    const last=d[d.length-1]; const kp = Array.isArray(last) ? parseFloat(last[1]) : parseFloat(last.Kp ?? last.kp_index);
+    if(isNaN(kp)) return; const v=String(Math.round(kp*100)/100); S.job.kp=v; S.wx.auto=Object.assign(S.wx.auto||{},{kp:v}); S.wx.kpSource=`NOAA SWPC planetary Kp, fetched ${hhmm(new Date())}`; save(true);
+    if($('#wxcard')) redrawWx();
+  }catch(e){ /* leave Kp manual */ }
+}
+function redrawWx(){ document.querySelectorAll('#wxcard [data-k]').forEach(el=>{ const k=el.dataset.k; if(document.activeElement!==el) el.value=S.job[k]??''; });
+  document.querySelectorAll('[data-k="w10"],[data-k="temp"]').forEach(el=>{ if(document.activeElement!==el) el.value=S.job[el.dataset.k]??''; });
+  setWxStatus(wxStatusText()); $('#hours').innerHTML=hoursHTML(); const rb=$('[data-act=wxrefresh]'); if(rb&&S.wx.lat!=null){rb.disabled=false;rb.style.opacity=1;} refresh(); }
+function useGeo(){
+  if(!navigator.geolocation){ toast('Location not available'); return; }
+  setWxStatus('Getting your location…');
+  navigator.geolocation.getCurrentPosition(p=>{ fetchWx(p.coords.latitude,p.coords.longitude,'My location'); },
+    err=>{ setWxStatus('<span class="warn">⚠️ Location blocked or unavailable – search a place or enter manually</span>'); }, { enableHighAccuracy:true, timeout:15000, maximumAge:60000 });
+}
+async function searchPlace(q){
+  q=(q||'').trim(); if(!q) return; const box=$('#results');
+  if(!navigator.onLine){ noSignal(); return; }
+  setWxStatus('Searching…');
+  const go=async cc=>{ const r=await withTimeout(fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(q)}&count=5&language=en&format=json${cc?'&country_code=IE':''}`),8000); return (await r.json()).results||[]; };
+  try{ let res=await go(true); if(!res.length) res=await go(false);
+    if(!res.length){ setWxStatus('<span class="warn">No places found – try another spelling</span>'); box.innerHTML=''; return; }
+    box.innerHTML=res.map((p,i)=>`<button data-act="pick" data-i="${i}">📍 ${esc(p.name)}<span style="color:var(--muted);font-weight:500">${esc([p.admin2,p.admin1,p.country].filter(Boolean).join(', '))}</span></button>`).join('');
+    box._res=res; setWxStatus('Pick a place:');
+  }catch(e){ noSignal(); }
+}
+
+/* ---------- Events ---------- */
+document.addEventListener('click', e=>{
+  const go=e.target.closest('[data-go]'); if(go){ location.hash=go.dataset.go; return; }
+  const j=e.target.closest('[data-jump]'); if(j){ e.preventDefault(); document.getElementById(j.dataset.jump).scrollIntoView({behavior:'smooth'}); return; }
+  const a=e.target.closest('[data-act]'); if(!a) return; const act=a.dataset.act; const lid=$('#app').dataset.list;
+  const itemEl=a.closest('[data-i]'); const iid=itemEl&&itemEl.classList.contains('item')?itemEl.dataset.i:null;
+  switch(act){
+    case 'home': location.hash='home'; break;
+    case 'theme': S.theme = document.documentElement.classList.contains('dark')?'light':'dark'; save(true); applyTheme(); a.textContent=S.theme==='dark'?'☀️':'🌙'; break;
+    case 'newjob': if(confirm('Start a new job? This clears all checklists and job details on this phone. Share any records you need first.')){ const th=S.theme; S=freshState(); S.theme=th; save(true); renderHome(); } break;
+    case 'tick': { const st=I(lid,iid); st.done=!st.done; st.t=st.done?Date.now():null; if(st.done) st.skip=false; save(); updateItem(iid); if(navigator.vibrate) navigator.vibrate(15); break; }
+    case 'note': { const st=I(lid,iid); const x=itemEl.querySelector('[data-x=note]'); x.classList.toggle('hide'); if(!x.classList.contains('hide')) x.querySelector('input').focus(); st.showNote=!x.classList.contains('hide'); save(); break; }
+    case 'skip': { const st=I(lid,iid); st.skip=!st.skip; if(st.skip){ st.done=false; st.t=null; } save(); updateItem(iid); if(st.skip) $('#it_'+iid+' [data-n=skipReason]').focus(); break; }
+    case 'share': share(lid); break;
+    case 'copy': copyDownload(lid); break;
+    case 'reset': if(confirm('Reset this checklist? Ticks, notes and N/A reasons will be cleared (job details are kept).')){ delete S.lists[lid]; save(true); renderList(lid); toast('Checklist reset'); } break;
+    case 'jump': { const it=document.querySelector('.item.ng:not(.done)'); if(it){ const y=it.getBoundingClientRect().top+scrollY-200; scrollTo({top:y,behavior:'smooth'}); } break; }
+    case 'geo': useGeo(); break;
+    case 'place': searchPlace($('#placeq').value); break;
+    case 'pick': { const p=$('#results')._res[+a.dataset.i]; $('#results').innerHTML=''; const name=[p.name,p.admin2].filter(Boolean).join(', ');
+      if(!S.job.site){ S.job.site=name; const sf=$('#j_site'); if(sf) sf.value=name; }
+      fetchWx(p.latitude,p.longitude,name); break; }
+    case 'wxrefresh': if(S.wx.lat!=null) fetchWx(S.wx.lat,S.wx.lon,S.wx.place); break;
+  }
+});
+document.addEventListener('input', e=>{
+  const t=e.target; const lid=$('#app').dataset.list;
+  if(t.dataset.k){ S.job[t.dataset.k]=t.value; document.querySelectorAll(`[data-k="${t.dataset.k}"]`).forEach(o=>{ if(o!==t) o.value=t.value; }); save(); if(lid) refresh(); }
+  else if(t.dataset.n){ const iid=t.closest('.item').dataset.i; I(lid,iid)[t.dataset.n]=t.value; save(); const m=t.closest('.item').querySelector('[data-act=note]'); if(m&&t.dataset.n==='note') m.classList.toggle('on',!!t.value); }
+  else if(t.dataset.ln){ L(lid)[t.dataset.ln]=t.value; save(); }
+});
+document.addEventListener('change', e=>{ if(e.target.dataset.k==='hPlan' && S.wx.w80!=null){ /* recompute wind at height */ const h=num(S.job.hPlan)||120, w10=num(S.wx.auto?.w10), w80=S.wx.w80, w120=S.wx.w120;
+  if(w10!=null){ const wH = h<=10?w10 : h<=80 ? w10+(w80-w10)*(h-10)/70 : w80+(w120-w80)*Math.min(1,(h-80)/40); S.job.wH=String(Math.round(wH*10)/10); S.wx.auto.wH=S.job.wH; save(); redrawWx(); } } });
+document.addEventListener('keydown', e=>{ if(e.key==='Enter' && e.target.id==='placeq'){ e.preventDefault(); searchPlace(e.target.value); } });
+window.addEventListener('online', ()=>{ const o=$('#offl'); if(o) o.textContent='Online'; });
+window.addEventListener('offline', ()=>{ const o=$('#offl'); if(o) o.textContent='Offline'; });
+window.addEventListener('pagehide', ()=>save(true));
+document.addEventListener('visibilitychange', ()=>{ if(document.visibilityState==='hidden') save(true); });
+
+if('serviceWorker' in navigator && location.protocol!=='file:'){ window.addEventListener('load', ()=>navigator.serviceWorker.register('sw.js').catch(()=>{})); }
+route();
+</script>
+</body>
+</html>
