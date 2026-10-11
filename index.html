@@ -52,7 +52,7 @@ html.dark .card h2{color:var(--teal2)}
 .tile .tt{font-size:20px;font-weight:800;color:var(--navy)}
 html.dark .tile .tt{color:#fff}
 .tile .ts{font-size:15px;color:var(--muted);font-weight:600}
-.tile .bar{height:8px;background:var(--bg2);border-radius:5px;overflow:hidden;margin-top:6px}
+.tile .bar{display:block;height:8px;background:var(--bg2);border-radius:5px;overflow:hidden;margin-top:6px}
 .tile .bar i{display:block;height:100%;background:var(--teal)}
 .tile.full{grid-column:1/-1;min-height:96px}
 .tile.emerg{background:#b3161b;border-color:#7d0d10;color:#fff;flex-direction:row;align-items:center;gap:14px;justify-content:flex-start}
@@ -70,6 +70,7 @@ label.f{display:block;margin:10px 0 0;font-size:15px;font-weight:700;color:var(-
 textarea.inp{min-height:84px;resize:vertical}
 .inp:focus{outline:3px solid var(--teal2);border-color:var(--teal)}
 .grid2{display:grid;grid-template-columns:1fr 1fr;gap:0 10px}
+.grid2>*,.cols2>*{min-width:0}
 .sticky{position:sticky;top:60px;z-index:15;background:var(--bg);padding:8px 12px 6px;border-bottom:1px solid var(--line)}
 .prog{display:flex;align-items:center;gap:10px;font-weight:700;font-size:16px}
 .prog .pb{flex:1;height:14px;background:var(--bg2);border:1px solid var(--line);border-radius:8px;overflow:hidden}
@@ -134,7 +135,38 @@ table.hrs th{color:var(--muted);font-size:13px}
 .hide{display:none!important}
 .toast.tap{cursor:pointer;background:var(--teal);border:2px solid #fff;min-height:52px;display:flex;align-items:center}
 .toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom));transform:translateX(-50%);background:#0b1620;color:#fff;padding:12px 18px;border-radius:12px;font-weight:700;z-index:50;max-width:90%;text-align:center}
+/* v2.1: phases, extra field types, iPad layout */
+.phase-h{display:flex;justify-content:space-between;align-items:baseline;gap:8px;font-size:15px;letter-spacing:.06em;text-transform:uppercase;color:var(--teal);font-weight:800;margin:24px 4px 8px;border-bottom:2px solid var(--line);padding-bottom:4px}
+.phase-h small{letter-spacing:0;text-transform:none;font-size:14px;color:var(--muted);font-weight:700}
+html.dark .phase-h{color:var(--teal2)}
+.tile .ts.st-amb{color:var(--amber)!important}
+.fsub{grid-column:1/-1;font-weight:800;font-size:16px;color:var(--navy);margin:14px 0 0;border-top:1px solid var(--line);padding-top:8px}
+html.dark .fsub{color:var(--teal2)}
+.grid2 .fsub:first-child{border-top:0;padding-top:0;margin-top:4px}
+.due{display:block;font-size:15px;font-weight:700;margin:4px 2px 0;color:var(--muted)}
+.due.amb{color:var(--amber)}.due.red{color:var(--red)}.due.ok{color:var(--ok)}
+.lnkrow{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
 @media (max-width:360px){.tiles{grid-template-columns:1fr}.grid2{grid-template-columns:1fr}}
+@media (min-width:700px){
+  .wrap{max-width:820px;padding:16px 24px}
+  .wrap.home{max-width:980px}
+  .tiles{grid-template-columns:repeat(3,1fr);gap:14px}
+  .sticky{padding:10px max(24px,calc((100% - 772px)/2)) 8px}
+  .card{padding:18px 20px}
+  .grid2.f3{grid-template-columns:1fr 1fr 1fr 1fr}
+  .grid2.f3 .fsub{grid-column:1/-1}
+  .cols2{display:grid;grid-template-columns:1fr 1fr;gap:0 16px}
+  .cols2 .fld.ta{grid-column:1/-1}
+  .logo{max-width:280px}
+}
+@media (min-width:1100px){
+  .wrap{max-width:900px}
+  .wrap.home{max-width:1120px}
+  .sticky{padding:10px max(24px,calc((100% - 852px)/2)) 8px}
+  .homecols{display:grid;grid-template-columns:340px 1fr;gap:24px;align-items:start}
+  .homecols .side{position:sticky;top:76px}
+  .homecols .phase-h:first-child{margin-top:12px}
+}
 </style>
 </head>
 <body>
@@ -142,17 +174,20 @@ table.hrs th{color:var(--muted);font-size:13px}
 <div id="toast" class="toast hide"></div>
 <script>
 'use strict';
-const APP_VERSION = '2.0.0';
+const APP_VERSION = '2.1.0';
 const MANUAL = 'SDS-OM-001 Operations Manual v0.1';
 const LIMITS = { mean: 15, gust: 19, tmin: 0, tmax: 35, visKm: 1, kp: 5 };   // Manual 7.5 SDS limits (8 m/s / 10 m/s) converted to knots, rounded down
 const GEOZONE_MAP = 'https://iaa-ie.maps.arcgis.com/apps/instant/basic/index.html?appid=0772db05b2bb488686d3678d8144ae66';
 const GEOZONE_PAGE = 'https://www.iaa.ie/general-aviation/drones/uas-geographic-zones';
 const ECCAIRS = 'https://aviationreporting.eu';
 const GZ = { href: GEOZONE_MAP, label: '🗺️ Open IAA geozone map' };
+const IAA_OCC = 'https://www.iaa.ie/safety/safety-reporting/drones-occurrence-reporting';   // checked 11/10/2026
+const KP_PAGE = 'https://www.swpc.noaa.gov/products/planetary-k-index';
+const MET_IE = 'https://www.met.ie/forecasts';
 
 /* ---------- Checklist content (from Operations Manual Appendix A, sections 7.5–7.8 and 9) ---------- */
 const LISTS = [
- { id:'survey', title:'Site Survey', icon:'🧭', ref:'Manual A.1 / 7.3', fields:['location'],
+ { id:'survey', ph:'before', title:'Site Survey', icon:'🧭', ref:'Manual A.1 / 7.3', fields:['location'],
    sections:[
    { h:'Desk survey', items:[
      ['s1','Location, Eircode & what3words/grid recorded'],
@@ -173,7 +208,7 @@ const LISTS = [
      ['s15','Cordon & sign positions set; crew position has VLOS of whole area'],
      ['s16','Mobile coverage, nearest A&E and AED noted'],
      ['s17','Wildlife / livestock noted; site photos taken'] ]} ]},
- { id:'preflight', title:'Pre-flight', icon:'📋', ref:'Manual A.2 / 7.5–7.6', fields:['location','weather','aircraft','crew'], go:true,
+ { id:'preflight', ph:'onsite', title:'Pre-flight', icon:'📋', ref:'Manual A.2 / 7.5–7.6', fields:['location','weather','aircraft','crew'], go:true,
    sections:[
    { h:'Documents & planning', items:[
      ['p1','Operator registration, pilot certificate(s) & insurance valid and to hand',1],
@@ -204,7 +239,7 @@ const LISTS = [
      ['p23','Operator registration number displayed on aircraft',1],
      ['p24','Remote ID loaded with operator number & active',1],
      ['p25','First aid kit to hand; nearest AED known'] ]} ]},
- { id:'pretakeoff', title:'Pre-takeoff', icon:'🚁', ref:'Manual A.2 / 7.6–7.7 – every battery', fields:[], go:true, quickwx:true,
+ { id:'pretakeoff', ph:'onsite', title:'Pre-takeoff', icon:'🚁', ref:'Manual A.2 / 7.6–7.7 – every battery', fields:[], go:true, quickwx:true,
    sections:[
    { h:'Final checks – every battery', items:[
      ['t1','Battery latched; props secure',1],
@@ -219,7 +254,7 @@ const LISTS = [
      ['t10','Area clear – no uninvolved people; airspace scanned',1],
      ['t11','Hover check at 2–3 m for 10–15 s – all normal',1],
      ['t12','Flight Log started'] ]} ]},
- { id:'postflight', title:'Post-flight', icon:'🛬', ref:'Manual A.3 / 7.8', fields:['flights'],
+ { id:'postflight', ph:'onsite', title:'Post-flight', icon:'🛬', ref:'Manual A.3 / 7.8', fields:['flights'],
    sections:[
    { h:'After landing', items:[
      ['f1','Motors stopped; battery out before anyone approaches'],
@@ -231,7 +266,204 @@ const LISTS = [
      ['f7','Site cleared'],
      ['f8','Site contact told of finish'],
      ['f9','Occurrence? Incident flag ticked, report raised, IAA/ECCAIRS need assessed (72 h)'],
-     ['f10','Debrief notes added to the Job'] ]} ]}
+     ['f10','Debrief notes added to the Job'] ]} ]},
+ /* ---- v2.1 additions. job:'basic' = job ref/date/pilot only; job:'none' + keep:true = ongoing, kept when a new job starts ---- */
+ // BEFORE THE JOB
+ { id:'enquiry', ph:'before', title:'Enquiry & quote', icon:'💶', ref:'Before the job · SDS Pricing Sheet', fields:['enquiry'], job:'basic',
+   sections:[
+   { h:'Enquiry', items:[
+     ['q1','Client name, contact & preferred contact method recorded'],
+     ['q2','Scope agreed – what they want and what it is for'],
+     ['q3','Location confirmed – Eircode / map pin'],
+     ['q4','Quick geozone look – Open category likely OK?',0,GZ],
+     ['q5','Deliverables agreed – photos / video length / format / turnaround'] ]},
+   { h:'Quote', items:[
+     ['q6','Price worked out from the SDS Pricing Sheet (package, add-ons, travel)'],
+     ['q7','VAT position stated on the quote'],
+     ['q8','Usage licence included in the quote'],
+     ['q9','Weather & reschedule policy explained'],
+     ['q10','Quote and terms sent – date recorded'],
+     ['q11','Follow-up date set; enquiry updated in Notion'] ]} ]},
+ { id:'risk', ph:'before', title:'Risk assessment', icon:'⚠️', ref:'Before the job · Manual 7.3–7.4', fields:['risk'], job:'basic',
+   sections:[
+   { h:'Category & airspace', items:[
+     ['r1','Category confirmed: Open A1/A3 – Air 3S is a C1 drone',1],
+     ['r2','Job can be done in Open category – if not, it needs Specific authorisation: do not fly',1],
+     ['r3','Geozone result recorded – conditions understood',1,GZ],
+     ['r4','Planned height no more than 120 m (or the zone limit if lower)',1] ]},
+   { h:'People & hazards', items:[
+     ['r5','No flight over assemblies of people – none expected on the day',1],
+     ['r6','Uninvolved people: where they will be and how they are kept clear',1],
+     ['r7','Hazards listed – obstacles, power lines, roads, water, wildlife, RF'],
+     ['r8','Mitigation recorded for each hazard'],
+     ['r9','Take-off, alternate & emergency landing sites chosen'] ]},
+   { h:'Emergency plan', items:[
+     ['r10','Emergency plan recorded – nearest A&E, access for services, 112',1],
+     ['r11','Risk assessment reviewed and signed off by the pilot'] ]} ]},
+ { id:'perms', ph:'before', title:'Permissions', icon:'✍️', ref:'Before the job · Manual 7.3', fields:['perms'], job:'basic',
+   sections:[
+   { h:'Permissions', items:[
+     ['m1','Landowner permission for take-off & landing – in writing'],
+     ['m2','Harbour master / port authority permission (ports, piers, harbours)'],
+     ['m3','NPWS or Coillte permit where relevant (national parks, nature sites, forests)'],
+     ['m4','IAA geozone authorisation, if the site is in a zone that needs one',0,GZ],
+     ['m5','Client has confirmed access – gates, keys, times, site rules'],
+     ['m6','All permissions this job needs are in hand, in writing',1],
+     ['m7','Copies saved to the job in Notion / OneDrive'] ]} ]},
+ { id:'booking', ph:'before', title:'Client booking', icon:'📅', ref:'Before the job', fields:['booking'], job:'basic',
+   sections:[
+   { h:'Booking', items:[
+     ['b1','Contract / terms & conditions signed'],
+     ['b2','Usage licence agreed (who can use the footage, where, how long)'],
+     ['b3','Deposit invoiced / received'],
+     ['b4','Shoot date booked'],
+     ['b5','Weather backup date agreed'],
+     ['b6','On-site contact name & phone recorded'],
+     ['b7','Arrival time, parking & meeting point confirmed'],
+     ['b8','Job added to calendar & Notion'] ]} ]},
+ // DAY BEFORE
+ { id:'kit', ph:'day', title:'Kit prep', icon:'🎒', ref:'Day before', fields:['kit'], job:'basic',
+   sections:[
+   { h:'Power', items:[
+     ['k1','Flight batteries charged & undamaged – IDs noted',1],
+     ['k2','Controller charged'],
+     ['k3','iPad / phone charged'],
+     ['k4','Power bank & charging cables packed'] ]},
+   { h:'Aircraft & media', items:[
+     ['k5','SD cards formatted + a spare card'],
+     ['k6','Firmware up to date (aircraft, controller, DJI Fly) – not updated on site'],
+     ['k7','Propellers inspected & secure, spares packed',1],
+     ['k8','ND filters packed'],
+     ['k9','Cleaning kit – lens cloth, blower'] ]},
+   { h:'Site & safety kit', items:[
+     ['k10','Landing pad'],
+     ['k11','Hi-vis vest'],
+     ['k12','Cones / signage'],
+     ['k13','First aid kit'],
+     ['k14','Fire extinguisher / LiPo safe bag'] ]} ]},
+ { id:'wxday', ph:'day', title:'Weather & NOTAMs', icon:'🌦️', ref:'Day before · Manual 7.5 limits', fields:['weather','tomorrow','wxday'],
+   sections:[
+   { h:'Forecast for the job', items:[
+     ['w1','Forecast checked for the job location and time',0,{href:MET_IE,label:'Met Éireann forecasts'}],
+     ['w2','Mean wind ≤ 15 kt and gusts ≤ 19 kt forecast at operating height'],
+     ['w3','No rain, fog or low cloud forecast for the slot'],
+     ['w4','Kp index checked (≤ 5)',0,{href:KP_PAGE,label:'NOAA Kp index'}],
+     ['w5','Sunrise / sunset noted'] ]},
+   { h:'Airspace', items:[
+     ['w6','NOTAMs & TRAs checked for the job time'],
+     ['w7','Geozones checked',0,GZ] ]},
+   { h:'Decision', items:[
+     ['w8','Go / no-go decision recorded'],
+     ['w9','Client told if rescheduling to the backup date'] ]} ]},
+ { id:'paperwork', ph:'day', title:'Paperwork in the bag', icon:'📁', ref:'Day before · Manual 7.6', fields:[], job:'basic',
+   sections:[
+   { h:'Documents', items:[
+     ['d1','IAA operator registration – in date, number to hand',1],
+     ['d2','A1/A3 certificate – in date, to hand',1],
+     ['d3','Insurance certificate – in date, covers this job',1],
+     ['d4','Written permissions for this site'],
+     ['d5','Risk assessment for this job'],
+     ['d6','Operations Manual available (offline copy)'],
+     ['d7','Client booking details & on-site contact'] ]} ]},
+ // ON SITE
+ { id:'briefing', ph:'onsite', title:'Site & public briefing', icon:'📣', ref:'On site · Manual 7.6', fields:['briefing'], job:'basic',
+   sections:[
+   { h:'Briefing', items:[
+     ['g1','Observer briefed – roles, stop signal, comms'],
+     ['g2','Client / site contact briefed – where people must not go'],
+     ['g3','Uninvolved people kept clear – cordon & signage in place',1],
+     ['g4','GDPR filming notice displayed'],
+     ['g5','Nearest A&E and emergency services access noted'],
+     ['g6','Phone signal checked – where to go for signal if not'] ]} ]},
+ // AFTER THE JOB
+ { id:'data', ph:'after', title:'Data & backup', icon:'💾', ref:'After the job', fields:['data'], job:'basic',
+   sections:[
+   { h:'Backup', items:[
+     ['a1','Cards copied to the SSD'],
+     ['a2','Second backup made (second drive or cloud)'],
+     ['a3','Files verified – they open and the counts match'],
+     ['a4','Only then: cards formatted'] ]} ]},
+ { id:'delivery', ph:'after', title:'Editing & delivery', icon:'🎬', ref:'After the job', fields:['delivery'], job:'basic',
+   sections:[
+   { h:'Editing', items:[
+     ['e1','Colour grade done'],
+     ['e2','Export specs as agreed – resolution, frame rate, format'],
+     ['e3','Privacy check – faces, number plates, private gardens blurred or cut'] ]},
+   { h:'Delivery', items:[
+     ['e4','Client folder created in OneDrive'],
+     ['e5','Folder shared to the client’s email only'],
+     ['e6','Usage licence note included'],
+     ['e7','Delivery email sent'] ]} ]},
+ { id:'invoice', ph:'after', title:'Invoice & close-out', icon:'🧾', ref:'After the job', fields:['invoice'], job:'basic',
+   sections:[
+   { h:'Invoice', items:[
+     ['i1','Invoice sent'],
+     ['i2','Payment due date set'],
+     ['i3','Payment received'] ]},
+   { h:'Close-out', items:[
+     ['i4','Feedback / Google review requested'],
+     ['i5','Job closed in Notion'] ]} ]},
+ { id:'incident', ph:'after', title:'Incident / occurrence report', icon:'📝', ref:'Only if something went wrong · Manual 9', sub:'Only if needed', fields:['incident'], job:'basic',
+   sections:[
+   { h:'Straight away', items:[
+     ['n1','Scene made safe – battery out, damaged battery isolated'],
+     ['n2','Injuries treated – 112 called if needed'],
+     ['n3','Evidence kept – photos, flight log, telemetry'] ]},
+   { h:'Reporting', items:[
+     ['n4','Decided whether it is reportable to the IAA',0,{href:IAA_OCC,label:'IAA occurrence reporting'}],
+     ['n5','Reportable: filed on ECCAIRS within 72 h – reference noted',0,{href:ECCAIRS,label:'ECCAIRS portal'}],
+     ['n6','Accident / serious incident: IAA (drones@iaa.ie), AAIU and Gardaí told immediately'],
+     ['n7','Insurer told'],
+     ['n8','Client / site contact told'],
+     ['n9','Logged in Notion Occurrences within 24 h'],
+     ['n10','Lessons learned – risk assessment / Ops Manual updated'] ]} ]},
+ // ONGOING
+ { id:'battery', ph:'ongoing', title:'Battery log', icon:'🔋', ref:'Ongoing · kept when you start a new job', fields:['battery'], job:'none', keep:true,
+   sections:[
+   { h:'Every battery', items:[
+     ['y1','Cycle counts updated from DJI Fly'],
+     ['y2','Each battery checked for swelling, dents or damage'],
+     ['y3','Batteries not in use stored at storage charge (about 40–60%)'],
+     ['y4','Swollen or damaged batteries retired – none left in service',1],
+     ['y5','Retired batteries disposed of at a battery recycling point'] ]} ]},
+ { id:'maint', ph:'ongoing', title:'Maintenance', icon:'🔧', ref:'Ongoing · kept when you start a new job', fields:['maint'], job:'none', keep:true,
+   sections:[
+   { h:'Aircraft', items:[
+     ['x1','Propellers – chips, cracks, replaced if worn'],
+     ['x2','Motors – spin freely, no grinding, no debris'],
+     ['x3','Gimbal – moves freely, calibrated, cover / clamp OK'],
+     ['x4','Sensors & lenses cleaned (vision sensors, camera)'],
+     ['x5','Firmware updated – aircraft, controller, batteries, DJI Fly'] ]},
+   { h:'Controller & records', items:[
+     ['x6','Controller – sticks, cable, screen, charging OK'],
+     ['x7','Defects logged in the Maintenance Log'],
+     ['x8','Aircraft fit to fly – any open defect means it is grounded',1] ]} ]},
+ { id:'renewals', ph:'ongoing', title:'Renewals', icon:'🔁', ref:'Ongoing · kept when you start a new job', fields:['renewals'], job:'none', keep:true, due:true,
+   sections:[
+   { h:'Legal', items:[
+     ['v1','IAA operator registration in date',1],
+     ['v2','A1/A3 certificate in date',1],
+     ['v3','Insurance in date – cover meets client requirements',1] ]},
+   { h:'Business', items:[
+     ['v4','Domain renewal checked'],
+     ['v5','Software subscriptions reviewed – Microsoft 365, website, Notion, editing'],
+     ['v6','Calendar reminders set a month before each date'] ]} ]},
+ { id:'annual', ph:'ongoing', title:'Annual review', icon:'🗓️', ref:'Ongoing · once a year', fields:['annual'], job:'none', keep:true,
+   sections:[
+   { h:'Review', items:[
+     ['z1','Operations Manual reviewed & updated'],
+     ['z2','Pricing reviewed against the market'],
+     ['z3','Risk assessment templates reviewed'],
+     ['z4','Training – refresher, first aid, new rules or C-class changes'],
+     ['z5','Insurance cover level reviewed'],
+     ['z6','Checklists reviewed – anything to add or remove'] ]} ]}
+];
+const PHASES = [
+ { id:'before', h:'Before the job', lists:['enquiry','survey','risk','perms','booking'] },
+ { id:'day', h:'Day before', lists:['kit','wxday','paperwork'] },
+ { id:'onsite', h:'On site', lists:['briefing','preflight','pretakeoff','postflight','emergency'] },
+ { id:'after', h:'After the job', lists:['data','delivery','invoice','incident'] },
+ { id:'ongoing', h:'Ongoing', lists:['battery','maint','renewals','annual'] }
 ];
 const EMERG = [
  ['E1','Fly-away / uncommanded flight','Switch flight mode & trigger RTH',
@@ -259,7 +491,35 @@ const FIELDSETS = {
    ['zonename','Zone name & conditions','ta'],['notams','NOTAMs / TRAs checked','',null,'e.g. Checked 08:10 – nothing relevant'] ]},
  aircraft:{ h:'Aircraft', f:[ ['aircraft','Aircraft'],['batteries','Battery IDs & charge %','',null,'e.g. B1 100%, B2 98%, B3 96%'],['firmware','Firmware (aircraft / RC / app)'] ]},
  crew:{ h:'Crew', f:[ ['observer','Observer name'],['crewother','Others briefed / involved persons'] ]},
- flights:{ h:'Flights', f:[ ['nflights','Flights flown','num'],['airtime','Total air time (min)','num'],['maxht','Max height flown (m)','num'],['battused','Batteries used'] ]}
+ flights:{ h:'Flights', f:[ ['nflights','Flights flown','num'],['airtime','Total air time (min)','num'],['maxht','Max height flown (m)','num'],['battused','Batteries used'] ]},
+ /* v2.1 – job-scoped (stored with the job, cleared by New job) */
+ enquiry:{ h:'Enquiry & quote', f:[ ['client','Client / business'],['cliContact','Contact name, phone & email','ta'],['scope','Scope – what and why','ta'],['deliver','Deliverables','ta'],
+   ['quote','Quote (€) & package','',null,'e.g. Half day €445 + travel'],['quoteSent','Quote & terms sent','date'],['followUp','Follow-up date','date'] ]},
+ risk:{ h:'Risk assessment', f:[ ['raCat','Operational category','sel',['','Open A1 (C1 – Air 3S)','Open A3','Needs Specific – do not fly in Open']],['hPlan','Planned max height (m)','num'],
+   ['geozone','Geozone result','sel',['','No zone – Open category OK','Zone – conditions apply','Prohibited / authorisation needed']],['zonename','Zone name & conditions','ta'],
+   ['raHaz','Hazards','ta',null,'e.g. power line on east side, public footpath, river'],['raMit','Mitigations','ta',null,'e.g. take-off 30 m from path, observer at gate'],
+   ['raPeople','People / uninvolved persons – where and how kept clear','ta'],['raEmerg','Emergency plan – A&E, access, landing sites','ta'] ]},
+ perms:{ h:'Who & reference numbers', f:[ ['permission','Landowner permission – from whom'],['pmLandRef','Landowner – date / ref'],['pmHarbour','Harbour master / port – who & ref'],
+   ['pmNpws','NPWS / Coillte permit – ref no.'],['pmIaa','IAA geozone authorisation – ref no.'],['pmAccess','Client access confirmed – by whom','ta'] ]},
+ booking:{ h:'Booking details', f:[ ['bkDate','Shoot date','date'],['bkBackup','Weather backup date','date'],['bkContact','On-site contact name'],['bkPhone','On-site contact phone','tel'],
+   ['bkDeposit','Deposit (€) & date'],['bkLicence','Usage licence agreed','ta'] ]},
+ kit:{ h:'Kit', f:[ ['batteries','Battery IDs & charge %','',null,'e.g. B1 100%, B2 98%, B3 96%'],['firmware','Firmware (aircraft / RC / app)'],['kitNote','Missing / to buy','ta'] ]},
+ wxday:{ h:'Go / no-go', f:[ ['wdDate','Job date','date'],['notams','NOTAMs / TRAs checked','',null,'e.g. Checked 18:30 – nothing relevant'],
+   ['wdGo','Decision','sel',['','Go','Go – with conditions','No-go – reschedule']],['wdNote','Decision note','ta',null,'e.g. Gusts 21 kt after 14:00 – fly 09:00–12:00 only'] ]},
+ briefing:{ h:'Briefing', f:[ ['observer','Observer name'],['bkContact','Client / site contact'],['hospital','Emergency access / nearest A&E'],['brSignal','Phone signal','',null,'e.g. 3 bars Vodafone; none in car park'] ]},
+ data:{ h:'Backup record', f:[ ['dtSsd','SSD / folder name'],['dtBackup2','Second backup – where'],['dtCount','File count / size','',null,'e.g. 412 photos, 38 clips, 96 GB'] ]},
+ delivery:{ h:'Delivery', f:[ ['dlSpec','Export specs','',null,'e.g. 4K 25p H.265, 20 photos JPG'],['dlLink','Client folder / link'],['dlSent','Delivery email sent','date'] ]},
+ invoice:{ h:'Invoice', f:[ ['invNo','Invoice no.'],['invAmt','Amount (€)'],['invSent','Invoice sent','date'],['invDue','Payment due','date'],['invPaid','Payment received','date'] ]},
+ incident:{ h:'What happened', f:[ ['incWhen','Date & time','dt'],['incWhat','What happened','ta'],['incInj','Injuries','ta',null,'None / details'],['incDmg','Damage – aircraft & property','ta'],
+   ['incRep','Reportable to the IAA?','sel',['','No – logged internally only','Yes – occurrence report filed (ECCAIRS)','Accident / serious incident – IAA, AAIU & Gardaí notified']],['incRef','ECCAIRS / IAA reference'],['incIns','Insurer claim ref.'] ]},
+ /* v2.1 – list-scoped (kept with the checklist, survive New job) */
+ battery:{ h:'Batteries', list:true, grid:true, f:[1,2,3,4].flatMap(n=>[ ['h',`Battery ${n}`,'h'],[`b${n}id`,'ID','',null,`B${n}`],[`b${n}cyc`,'Cycle count','num'],
+   [`b${n}cond`,'Condition','sel',['','OK','Swelling – retire','Damaged – retire','Retired']],[`b${n}chg`,'Storage charge %','num'] ]) },
+ maint:{ h:'Maintenance record', list:true, f:[ ['mtDate','Last maintenance','date'],['mtFw','Firmware versions'],['mtProps','Props last replaced','date'],['mtDefects','Open defects','ta',null,'None'] ]},
+ renewals:{ h:'Renewal dates', list:true, f:[ ['rnIaaNo','IAA operator registration no.'],['rnIaa','IAA operator registration expires','due'],['rnA1a3','A1/A3 certificate expires','due'],
+   ['rnInsurer','Insurer & cover','',null,'e.g. €6.5m public liability'],['rnIns','Insurance renewal','due'],['rnDomain','Domain renewal','due'],['rnM365','Microsoft 365 renewal','due'],
+   ['rnWeb','Website plan renewal','due'],['rnOther','Other subscriptions & dates','ta'] ]},
+ annual:{ h:'Review', list:true, f:[ ['anDate','Review done','date'],['anNext','Next review due','due'],['anTraining','Training done / planned','ta'] ]}
 };
 const WXF = [ // key,label,unit
  ['hPlan','Planned max height','m'],['w10','Wind 10 m','kt'],['wH','Wind at op. height','kt'],['gust','Gusts','kt'],['dir','Wind direction','°'],
@@ -275,7 +535,7 @@ const localDT = d => `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate(
 const hhmm = t => { const d=new Date(t); return `${pad(d.getHours())}:${pad(d.getMinutes())}`; };
 const fmtDT = t => { const d=new Date(t); return `${pad(d.getDate())}/${pad(d.getMonth()+1)}/${d.getFullYear()} ${pad(d.getHours())}:${pad(d.getMinutes())}`; };
 function freshJob(){ return { ref:'', dt:localDT(new Date()), pilot:'Brian Sinnott', aircraft:'DJI Air 3S', hPlan:'120' }; }
-function freshState(){ return { job:freshJob(), lists:{}, wx:{}, theme:null }; }
+function freshState(){ return { schema:21, job:freshJob(), lists:{}, wx:{}, theme:null }; }
 let S;
 try { S = JSON.parse(localStorage.getItem(KEY)) || migrateV1() || freshState(); } catch(e){ S = freshState(); }
 function migrateV1(){ // v1 stored wind in m/s: convert to knots so nothing is misread
@@ -288,6 +548,8 @@ function migrateV1(){ // v1 stored wind in m/s: convert to knots so nothing is m
   try { localStorage.setItem(KEY, JSON.stringify(o)); localStorage.removeItem(OLD_KEY); } catch(e){}
   return o; }
 S.job = S.job || freshJob(); S.lists = S.lists || {}; S.wx = S.wx || {};
+// v2.1: same storage key – the data model is only extended (new list ids, per-list fields 'f'), so v2.0 records load unchanged
+if(!S.schema){ S.schema = 21; try{ localStorage.setItem(KEY, JSON.stringify(S)); }catch(e){} }
 if(S.job.hPlan===undefined) S.job.hPlan='120';
 let saveT;
 function save(now){ clearTimeout(saveT); const w=()=>{ try{ localStorage.setItem(KEY, JSON.stringify(S)); }catch(e){} }; if(now) w(); else saveT=setTimeout(w,250); }
@@ -340,47 +602,84 @@ function header(title, back, cls=''){
 }
 
 /* ---------- Home ---------- */
+const LISTMAP = id => LISTS.find(l=>l.id===id);
+function daysTo(v){ if(!v) return null; const d=new Date(v+'T00:00'); if(isNaN(d)) return null; const t=new Date(); t.setHours(0,0,0,0); return Math.round((d-t)/864e5); }
+function dueInfo(v){ const n=daysTo(v); if(n==null) return null;
+  return n<0 ? {cls:'red', txt:`⛔ Expired ${-n} day${n===-1?'':'s'} ago`} : n===0 ? {cls:'red', txt:'⛔ Due today'} : n<=30 ? {cls:'amb', txt:`⚠️ Due in ${n} day${n===1?'':'s'}`} : {cls:'ok', txt:`In ${n} days`}; }
+function renewalAlerts(){ const f=(S.lists.renewals&&S.lists.renewals.f)||{}; const out=[];
+  FIELDSETS.renewals.f.filter(x=>x[2]==='due').forEach(([k,lab])=>{ const n=daysTo(f[k]); if(n!=null && n<=30) out.push({lab,n}); }); return out; }
+function tileHTML(l){ const s=stats(l); const pct=Math.round(100*s.resolved/s.total);
+  let status = s.complete ? `<span class="st-ok">✓ Complete${l.keep&&S.lists[l.id]&&S.lists[l.id].completed?' '+fmtDT(S.lists[l.id].completed).slice(0,5):''}</span>` : s.resolved ? `${s.resolved}/${s.total} done` : (l.sub || `${s.total} items`);
+  let cls='ts';
+  if(l.due){ const a=renewalAlerts(); if(a.length){ const exp=a.some(x=>x.n<=0); status = exp ? `⛔ ${a.length} expired / due` : `⚠️ ${a.length} due ≤ 30 days`; cls = exp?'ts st-red':'ts st-amb'; } }
+  return `<button class="tile" data-go="${l.id}"><span class="ic">${l.icon}</span><span class="tt">${esc(l.title)}</span>
+      <span><span class="${cls}">${status}</span><span class="bar"><i style="width:${pct}%"></i></span></span></button>`; }
 function renderHome(){
   const j=S.job;
-  const tiles = LISTS.map(l=>{ const s=stats(l); const pct=Math.round(100*s.resolved/s.total);
-    const status = s.complete ? `<span class="st-ok">✓ Complete</span>` : s.resolved ? `${s.resolved}/${s.total} done` : `${s.total} items`;
-    return `<button class="tile" data-go="${l.id}"><span class="ic">${l.icon}</span><span class="tt">${l.title}</span>
-      <span><span class="ts">${status}</span><span class="bar"><i style="width:${pct}%"></i></span></span></button>`; }).join('');
-  $('#app').innerHTML = header('SDS Checklists', false) + `<main class="wrap">
+  const groups = PHASES.map(ph=>{ const ls=ph.lists.filter(id=>id!=='emergency').map(LISTMAP);
+    const nDone=ls.filter(l=>stats(l).complete).length;
+    const tiles = ph.lists.map(id=> id==='emergency'
+      ? `<button class="tile full emerg" data-go="emergency"><span class="ic" style="font-size:40px">🚨</span><span><span class="tt">Emergency Procedures</span><br><span class="ts">E1–E8 quick cards · read-only</span></span></button>`
+      : tileHTML(LISTMAP(id))).join('');
+    return `<section class="phase" id="ph_${ph.id}"><h2 class="phase-h"><span>${ph.h}</span><small>${nDone}/${ls.length} complete</small></h2><div class="tiles">${tiles}</div></section>`; }).join('');
+  $('#app').dataset.list='';
+  $('#app').innerHTML = header('SDS Checklists', false) + `<main class="wrap home"><div class="homecols"><div class="side">
     <img class="logo" src="icons/logo.png" alt="Sinnott Drone Services"><img class="logo rev" src="icons/logo-rev.png" alt="Sinnott Drone Services">
     <p class="sub">Field checklists · DJI Air 3S · EASA Open category</p>
     <div class="card"><h2>Current job</h2>
       <div style="font-size:20px;font-weight:700">${esc(j.ref||j.site||'No job reference yet')}</div>
       <div style="color:var(--muted);font-size:16px">${esc(j.dt?fmtDT(j.dt):'')} · ${esc(j.pilot||'')}</div>
-      <div class="row" style="margin-top:6px"><button class="btn sec small" data-act="newjob">＋ New job</button></div></div>
-    <div class="tiles">${tiles}
-      <button class="tile full emerg" data-go="emergency"><span class="ic" style="font-size:40px">🚨</span><span><span class="tt">Emergency Procedures</span><br><span class="ts">E1–E8 quick cards · read-only</span></span></button>
-    </div>
-    <p class="foot">Sinnott Drone Services · ${MANUAL}<br>App v${APP_VERSION} · <span id="offl">${navigator.onLine?'Online':'Offline'}</span> · saved on this phone only</p>
+      <div class="row" style="margin-top:6px"><button class="btn sec small" data-act="newjob">＋ New job</button></div></div></div>
+    <div class="groups">${groups}</div></div>
+    <p class="foot">Sinnott Drone Services · ${MANUAL}<br>App v${APP_VERSION} · <span id="offl">${navigator.onLine?'Online':'Offline'}</span> · saved on this device only</p>
   </main>`;
 }
 
 /* ---------- Fields ---------- */
-function fieldHTML([k,label,type,opts,ph]){
-  const v = S.job[k]??'';
-  if(type==='ta') return `<label class="f" for="j_${k}">${label}</label><textarea class="inp" id="j_${k}" data-k="${k}" placeholder="${esc(ph||'')}">${esc(v)}</textarea>`;
-  if(type==='sel') return `<label class="f" for="j_${k}">${label}</label><select class="inp" id="j_${k}" data-k="${k}">${opts.map(o=>`<option ${o===v?'selected':''} value="${esc(o)}">${o||'— select —'}</option>`).join('')}</select>`;
-  return `<label class="f" for="j_${k}">${label}</label><input class="inp" id="j_${k}" data-k="${k}" value="${esc(v)}" ${type==='num'?'inputmode="decimal"':''} placeholder="${esc(ph||'')}" autocomplete="off">`;
+function fieldHTML(def, lid){ const h=fieldInner(def, lid); return def[2]==='h' ? h : `<div class="fld${def[2]==='ta'?' ta':''}">${h}</div>`; }   // one wrapper per field so grid layouts pair fields, not label/input
+function fieldInner([k,label,type,opts,ph], lid){
+  // lid set = value lives with that checklist (ongoing lists); otherwise with the job (S.job), as in v2.0
+  if(type==='h') return `<div class="fsub">${esc(label)}</div>`;
+  const v = lid ? ((L(lid).f||{})[k]??'') : (S.job[k]??'');
+  const id = (lid?'l_':'j_')+k, attr = lid ? `data-lf="${k}"` : `data-k="${k}"`;
+  const lab = `<label class="f" for="${id}">${label}</label>`;
+  if(type==='ta') return `${lab}<textarea class="inp" id="${id}" ${attr} placeholder="${esc(ph||'')}">${esc(v)}</textarea>`;
+  if(type==='sel') return `${lab}<select class="inp" id="${id}" ${attr}>${opts.map(o=>`<option ${o===v?'selected':''} value="${esc(o)}">${o||'— select —'}</option>`).join('')}</select>`;
+  if(type==='date'||type==='due'||type==='dt'){ const di = type==='due' ? dueInfo(v) : null;
+    return `${lab}<input class="inp" id="${id}" ${attr} type="${type==='dt'?'datetime-local':'date'}" value="${esc(v)}">${type==='due'?`<span class="due ${di?di.cls:''}" data-due="${k}">${di?di.txt:'No date set'}</span>`:''}`; }
+  const im = type==='num' ? 'inputmode="decimal"' : type==='tel' ? 'type="tel" inputmode="tel"' : '';
+  return `${lab}<input class="inp" id="${id}" ${attr} value="${esc(v)}" ${im} placeholder="${esc(ph||'')}" autocomplete="off">`;
 }
-function jobCard(){
+function jobCard(list){
+  if(list && list.job==='none') return '';
+  if(list && list.job==='basic') return `<div class="card"><h2>Job</h2>
+   ${fieldHTML(['ref','Job ref / site'])}
+   <div class="cols2">${fieldHTML(['dt','Date & time'])}${fieldHTML(['pilot','Pilot'])}</div></div>`.replace('id="j_dt" data-k="dt"','id="j_dt" data-k="dt" type="datetime-local"');
   return `<div class="card"><h2>Job</h2>
    ${fieldHTML(['ref','Job ref / site'])}
-   <div class="grid2">${fieldHTML(['dt','Date & time'])}${fieldHTML(['pilot','Pilot'])}</div>
+   <div class="cols2">${fieldHTML(['dt','Date & time'])}${fieldHTML(['pilot','Pilot'])}</div>
    <div class="grid2">${wxInput('w10','Wind (kt)')}${wxInput('temp','Temp (°C)')}</div></div>`.replace('id="j_dt" data-k="dt"','id="j_dt" data-k="dt" type="datetime-local"');
 }
-function wxInput(k,label){ return `<label class="f">${label}</label><input class="inp" data-k="${k}" value="${esc(S.job[k]??'')}" inputmode="decimal" autocomplete="off">`; }
-function fieldset(name){
+function wxInput(k,label){ return `<div class="fld"><label class="f">${label}</label><input class="inp" data-k="${k}" value="${esc(S.job[k]??'')}" inputmode="decimal" autocomplete="off"></div>`; }
+function fieldset(name, lid){
   if(name==='weather') return weatherCard();
+  if(name==='tomorrow') return `<div class="card" id="tmrcard"><h2>Tomorrow’s forecast</h2><div id="tmr">${tomorrowHTML()}</div></div>`;
   const fs=FIELDSETS[name];
   let extra='';
-  if(name==='location') extra=`<div class="row" style="margin-top:10px"><a class="lnk" href="${GEOZONE_MAP}" target="_blank" rel="noopener">🗺️ IAA geozone map</a><a class="lnk" href="${GEOZONE_PAGE}" target="_blank" rel="noopener">IAA geozones page</a></div>`;
-  return `<div class="card"><h2>${fs.h}</h2>${fs.f.map(fieldHTML).join('')}${extra}</div>`;
+  if(name==='location'||name==='risk') extra=`<div class="row" style="margin-top:10px"><a class="lnk" href="${GEOZONE_MAP}" target="_blank" rel="noopener">🗺️ IAA geozone map</a><a class="lnk" href="${GEOZONE_PAGE}" target="_blank" rel="noopener">IAA geozones page</a></div>`;
+  if(name==='incident') extra=`<div class="lnkrow"><a class="lnk" href="${IAA_OCC}" target="_blank" rel="noopener">IAA occurrence reporting</a><a class="lnk" href="${ECCAIRS}" target="_blank" rel="noopener">ECCAIRS portal</a></div>`;
+  const body = fs.f.map(d=>fieldHTML(d, fs.list?lid:null)).join('');
+  return `<div class="card"><h2>${fs.h}</h2>${fs.grid?`<div class="grid2 f3">${body}</div>`:`<div class="cols2">${body}</div>`}${extra}</div>`;
 }
+function tomorrowHTML(){ const t=S.wx.tmr;
+  if(!t||!t.length) return `<p class="hint">Use “Use my location” or search the job’s place above – tomorrow’s hours (07:00–19:00) appear here.</p>`;
+  const c=(v,lim)=>v==null?'–':`<span class="${v>lim?'over':''}">${v.toFixed(1)}</span>`;
+  const mx=k=>Math.max(...t.map(r=>r[k]).filter(x=>x!=null));
+  const gMax=mx('g'), wMax=Math.max(mx('w10'),mx('w120')), over = gMax>LIMITS.gust || wMax>LIMITS.mean, near = !over && (gMax>=LIMITS.gust*0.8 || wMax>=LIMITS.mean*0.8);
+  const d=new Date(S.wx.tmrDate+'T12:00');
+  return `<div class="light ${over?'red':near?'amber':'green'}"><b>${over?'⛔ Some hours outside limits':near?'⚠️ Near limits':'✅ Wind within limits all day'}</b><span style="font-size:14px">${isNaN(d)?'':d.toLocaleDateString('en-IE',{weekday:'short',day:'numeric',month:'short'})}</span></div>
+   <table class="hrs"><tr><th>Time</th><th>10 m kt</th><th>120 m kt</th><th>Gust kt</th><th>Rain %</th></tr>${t.map(r=>`<tr><td><b>${r.t}</b></td><td>${c(r.w10,LIMITS.mean)}</td><td>${c(r.w120,LIMITS.mean)}</td><td>${c(r.g,LIMITS.gust)}</td><td>${r.pp??'–'}</td></tr>`).join('')}</table>
+   <p class="hint">Peak mean wind ${wMax.toFixed(1)} kt · peak gust ${gMax.toFixed(1)} kt (gusts at 10 m – expect more aloft). From the last fetch: ${esc(S.wx.source||'')}.</p>`; }
 function weatherCard(){
   const wx=S.wx;
   const inputs = WXF.map(([k,l,u])=>`<div><label class="f">${l}${u?` (${u})`:''}</label><input class="inp" data-k="${k}" value="${esc(S.job[k]??'')}" inputmode="decimal" autocomplete="off"></div>`).join('');
@@ -397,7 +696,8 @@ function weatherCard(){
 }
 function wxStatusText(){ const w=S.wx; if(w.error) return `<span class="warn">⚠️ ${esc(w.error)}</span>`;
   if(!w.fetchedAt) return 'Enter a location to auto-fill, or type values in.';
-  return `${esc(w.source||'')}${w.place?` · ${esc(w.place)}`:''} (${w.lat.toFixed(3)}, ${w.lon.toFixed(3)})${num(S.job.dir)!=null?` · wind from ${compass(num(S.job.dir))}`:''}${w.kpSource?`<br>${esc(w.kpSource)}`:''}`; }
+  const old = new Date(w.fetchedAt).toDateString()!==new Date().toDateString();
+  return `${esc(w.source||'')}${w.place?` · ${esc(w.place)}`:''} (${w.lat.toFixed(3)}, ${w.lon.toFixed(3)})${num(S.job.dir)!=null?` · wind from ${compass(num(S.job.dir))}`:''}${w.kpSource?`<br>${esc(w.kpSource)}`:''}${old?`<br><span class="warn">⚠️ Fetched ${fmtDT(w.fetchedAt).slice(0,5)} – tap Refresh for today’s conditions</span>`:''}`; }
 function hoursHTML(){ const h=S.wx.hours; if(!h||!h.length) return '';
   const c=(v,lim)=>v==null?'–':`<span class="${v>lim?'over':''}">${v.toFixed(1)}</span>`;
   return `<table class="hrs"><tr><th>Time</th><th>10 m kt</th><th>80 m kt</th><th>120 m kt</th><th>Gust kt</th><th>Rain %</th></tr>${h.map(r=>`<tr><td><b>${r.t}</b></td><td>${c(r.w10,LIMITS.mean)}</td><td>${c(r.w80,LIMITS.mean)}</td><td>${c(r.w120,LIMITS.mean)}</td><td>${c(r.g,LIMITS.gust)}</td><td>${r.pp??'–'}</td></tr>`).join('')}</table>`; }
@@ -410,12 +710,13 @@ function lightsHTML(){ const a=assessWx(S.job); if(!a.rows.length) return '';
 function renderList(id){
   const list = LISTS.find(l=>l.id===id), l=L(id);
   if(!l.started){ l.started=Date.now(); save(); }
+  const before = !(list.ph==='after'||list.ph==='ongoing');
   const sec = list.sections.map(s=>`<div class="sec-h">${esc(s.h)}</div>`+s.items.map(([iid,t,ng,link])=>itemHTML(id,iid,t,ng,link)).join('')).join('');
   $('#app').innerHTML = header(list.title, true) + `<div class="sticky" id="stk"></div><main class="wrap">
     <div style="font-size:14px;color:var(--muted);margin:4px">${list.ref} · started ${hhmm(l.started)}</div>
-    ${allItems(list).some(i=>i.ng)?`<div class="hint">Items tagged <span class="chip">Critical</span> must be ticked before flight – they can’t be marked N/A.</div>`:''}
-    ${jobCard()}
-    ${list.fields.map(fieldset).join('')}
+    ${allItems(list).some(i=>i.ng)?`<div class="hint">Items tagged <span class="chip">Critical</span> must be ticked ${before?'before flight':'to complete this checklist'} – they can’t be marked N/A.</div>`:''}
+    ${jobCard(list)}
+    ${list.fields.map(n=>fieldset(n,id)).join('')}
     ${list.quickwx?`<div class="card"><h2>Weather</h2><div class="lights" id="lights"></div><a class="btn sec" href="#preflight">Check / refresh weather in Pre-flight</a></div>`:''}
     ${sec}
     <div class="card"><h2>General notes</h2><textarea class="inp" data-ln="notes" placeholder="Anything else for the record">${esc(l.notes||'')}</textarea></div>
@@ -441,7 +742,7 @@ function itemHTML(lid,iid,t,ng,link){
 function refresh(){
   const id=$('#app').dataset.list; const list=LISTS.find(l=>l.id===id); if(!list) return;
   const s=stats(list), l=L(id), pct=Math.round(100*s.resolved/s.total);
-  const wxa = (list.go) ? assessWx(S.job) : {red:[],overall:'none'};
+  const wxa = (list.go||list.wx) ? assessWx(S.job) : {red:[],overall:'none'};
   let banner;
   const nCrit = s.ngOpen.length, critTxt = `${nCrit} critical item${nCrit>1?'s':''} outstanding`;
   const nogo = nCrit>0 || wxa.red.length>0;
@@ -477,10 +778,11 @@ function renderEmergency(){
 
 /* ---------- Record ---------- */
 function recordText(id){
-  const list=LISTS.find(l=>l.id===id), l=L(id), s=stats(list), j=S.job, wxa=list.go?assessWx(j):{red:[]};
+  const list=LISTS.find(l=>l.id===id), l=L(id), s=stats(list), j=S.job, wxa=(list.go||list.wx)?assessWx(j):{red:[]};
   const out=[]; const line=(k,v)=>{ if(v!==undefined&&v!==null&&String(v).trim()!=='') out.push(`${k}: ${v}`); };
   out.push('SINNOTT DRONE SERVICES'); out.push(`${list.title.toUpperCase()} CHECKLIST RECORD`); out.push('='.repeat(34));
-  line('Job ref / site', j.ref); line('Date / time', j.dt?fmtDT(j.dt):''); line('Pilot', j.pilot); line('Observer', j.observer); line('Aircraft', j.aircraft);
+  if(list.job==='none'){ line('Checked by', j.pilot); line('Aircraft', j.aircraft); }
+  else { line('Job ref / site', j.ref); line('Date / time', j.dt?fmtDT(j.dt):''); line('Pilot', j.pilot); line('Observer', j.observer); line('Aircraft', j.aircraft); }
   line('Started', l.started?fmtDT(l.started):''); line('Completed', l.completed?fmtDT(l.completed):'NOT COMPLETE');
   const status = wxa.red.length ? 'WEATHER OUTSIDE LIMITS' : s.ngOpen.length ? 'NOT READY' : s.complete ? (list.go?'READY TO FLY':'COMPLETE') : 'IN PROGRESS';
   out.push(`STATUS: ${status} (${s.done} ticked, ${s.skip} N/A, ${s.total-s.resolved} open of ${s.total})`);
@@ -488,9 +790,16 @@ function recordText(id){
   if(nCritTotal) out.push(s.ngOpen.length ? `Critical items: ${s.ngOpen.length} outstanding – ${s.ngOpen.map(i=>i.t).join('; ')}` : 'Critical items: all complete');
   if(wxa.red.length) out.push('  Weather over limits: '+wxa.red.map(r=>`${r.name} ${r.val}`).join('; '));
   const sect=(title,pairs)=>{ const rows=pairs.filter(([k])=>j[k]!=null&&String(j[k]).trim()!==''); if(!rows.length) return; out.push(''); out.push(`-- ${title} --`); rows.forEach(([k,lab])=>out.push(`${lab}: ${j[k]}`)); };
-  sect('SITE / LOCATION', FIELDSETS.location.f);
+  const v21 = !!list.ph && !['survey','preflight','pretakeoff','postflight'].includes(id);
+  if(v21){ // v2.1 lists: only this checklist's own fields
+    list.fields.filter(n=>FIELDSETS[n]).forEach(n=>{ const fs=FIELDSETS[n], src = fs.list ? (l.f||{}) : j;
+      const rows=fs.f.filter(([k,,t])=>t!=='h' && src[k]!=null && String(src[k]).trim()!=='');
+      if(!rows.length) return; out.push(''); out.push(`-- ${fs.h.toUpperCase()} --`);
+      rows.forEach(([k,lab,t])=>{ let v=src[k]; if(t==='date'||t==='due') v=v.split('-').reverse().join('/'); if(t==='dt') v=fmtDT(v);
+        const di = t==='due' ? dueInfo(src[k]) : null; out.push(`${lab}: ${v}${di&&di.cls!=='ok'?' – '+di.txt.replace(/^\S+ /,''):''}`); }); });
+  } else sect('SITE / LOCATION', FIELDSETS.location.f);
   const wxRows = WXF.filter(([k])=>j[k]!=null&&String(j[k]).trim()!=='');
-  if(wxRows.length||j.wxremarks){ out.push(''); out.push('-- WEATHER --');
+  if((!v21||list.fields.includes('weather')) && (wxRows.length||j.wxremarks)){ out.push(''); out.push('-- WEATHER --');
     if(S.wx.fetchedAt) out.push(`Source: ${S.wx.source}${S.wx.place?' – '+S.wx.place:''} (${S.wx.lat.toFixed(3)}, ${S.wx.lon.toFixed(3)})`);
     if(S.wx.kpSource) out.push(`Kp source: ${S.wx.kpSource}`);
     wxRows.forEach(([k,lab,u])=>{ const auto=S.wx.auto&&S.wx.auto[k]; const ed = (auto!=null && String(auto)!==String(j[k])) ? ' (edited)' : (auto==null&&S.wx.fetchedAt&&k!=='hPlan'?' (manual)':'');
@@ -499,7 +808,8 @@ function recordText(id){
     if(S.wx.hours&&S.wx.hours.length) out.push('Next hours (kt, 10/80/120 m, gust): '+S.wx.hours.map(h=>`${h.t} ${h.w10?.toFixed(1)}/${h.w80?.toFixed(1)}/${h.w120?.toFixed(1)} g${h.g?.toFixed(1)}`).join(' | '));
     const a=assessWx(j); if(a.rows.length) out.push('Assessment vs Manual 7.5: '+a.overall.toUpperCase()+' – '+a.rows.map(r=>`${r.name} ${r.status}`).join(', '));
   }
-  sect('AIRCRAFT', FIELDSETS.aircraft.f); sect('CREW', FIELDSETS.crew.f);
+  if(v21 && S.wx.tmr && S.wx.tmr.length && list.fields.includes('tomorrow')) out.push(`Tomorrow ${S.wx.tmrDate} (kt, 10/120 m, gust, rain %): `+S.wx.tmr.map(h=>`${h.t} ${h.w10?.toFixed(1)}/${h.w120?.toFixed(1)} g${h.g?.toFixed(1)} ${h.pp??'–'}%`).join(' | '));
+  if(!v21){ sect('AIRCRAFT', FIELDSETS.aircraft.f); sect('CREW', FIELDSETS.crew.f); }
   if(id==='postflight') sect('FLIGHTS', FIELDSETS.flights.f);
   list.sections.forEach(sec=>{ out.push(''); out.push(`-- ${sec.h.toUpperCase()} --`);
     sec.items.forEach(([iid,t,ng])=>{ const st=l.items[iid]||{};
@@ -511,7 +821,7 @@ function recordText(id){
   out.push(''); out.push(`Generated ${fmtDT(Date.now())} · SDS Checklists v${APP_VERSION} · ${MANUAL}`);
   return out.join('\n');
 }
-function fileName(id){ const d=new Date(); const ref=(S.job.ref||'job').replace(/[^\w-]+/g,'_').slice(0,30);
+function fileName(id){ const d=new Date(); const ref=(LISTMAP(id)&&LISTMAP(id).job==='none'?'ongoing':(S.job.ref||'job')).replace(/[^\w-]+/g,'_').slice(0,30);
   return `SDS_${id}_${d.getFullYear()}${pad(d.getMonth()+1)}${pad(d.getDate())}-${pad(d.getHours())}${pad(d.getMinutes())}_${ref}.txt`; }
 async function copyDownload(id, quiet){
   const txt=recordText(id); let copied=false;
@@ -542,6 +852,8 @@ async function fetchWx(lat,lon,place){
     const d=await r.json();
     const c=d.current||{}, H=d.hourly||{}; const nowKey=(c.time||'').slice(0,13); let idx=(H.time||[]).findIndex(t=>t.slice(0,13)===nowKey); if(idx<0) idx=0;
     const hours=[]; for(let k=idx;k<=idx+3&&k<(H.time||[]).length;k++) hours.push({ t:k===idx?'Now':H.time[k].slice(11,16), w10:H.wind_speed_10m?.[k], w80:H.wind_speed_80m?.[k], w120:H.wind_speed_120m?.[k], g:H.wind_gusts_10m?.[k], pp:H.precipitation_probability?.[k] });
+    const tk=(()=>{ const d=new Date((c.time||(H.time||[])[0]||localDT(new Date())).slice(0,10)+'T12:00'); d.setDate(d.getDate()+1); return localDT(d).slice(0,10); })();
+    const tmr=[]; (H.time||[]).forEach((t,k)=>{ const hr=+t.slice(11,13); if(t.slice(0,10)===tk && hr>=7 && hr<=19 && hr%2===1) tmr.push({ t:t.slice(11,16), w10:H.wind_speed_10m?.[k], w120:H.wind_speed_120m?.[k], g:H.wind_gusts_10m?.[k], pp:H.precipitation_probability?.[k] }); });
     const pp3 = Math.max(...[1,2,3].map(o=>H.precipitation_probability?.[idx+o]).filter(x=>x!=null), H.precipitation_probability?.[idx]??0);
     const h=num(S.job.hPlan)||120; const w80=c.wind_speed_80m, w120=c.wind_speed_120m, w10=c.wind_speed_10m;
     let wH = h<=10?w10 : h<=80 ? w10+(w80-w10)*(h-10)/70 : w80+(w120-w80)*Math.min(1,(h-80)/40);
@@ -550,7 +862,7 @@ async function fetchWx(lat,lon,place){
       cloud:c.cloud_cover!=null?String(c.cloud_cover):'', cbase:(c.cloud_cover>5&&c.temperature_2m!=null&&c.dew_point_2m!=null)?String(Math.max(0,Math.round((c.temperature_2m-c.dew_point_2m)*125))):'',
       vis:c.visibility!=null?r1(c.visibility/1000):'', precip:c.precipitation!=null?String(c.precipitation):'', pprob:isFinite(pp3)?String(pp3):'' };
     Object.assign(S.job, auto);
-    const t=new Date(); S.wx = Object.assign(S.wx, { lat, lon, place:place||S.wx.place||'', fetchedAt:t.getTime(), source:`Open-Meteo, fetched ${hhmm(t)}`, hours, auto, w80, w120, error:null });
+    const t=new Date(); S.wx = Object.assign(S.wx, { lat, lon, place:place||S.wx.place||'', fetchedAt:t.getTime(), source:`Open-Meteo, fetched ${hhmm(t)}`, hours, auto, w80, w120, tmr, tmrDate:tk, error:null });
     save(true);
     fetchKp();
   }catch(e){ noSignal(); }
@@ -565,7 +877,7 @@ async function fetchKp(){
 }
 function redrawWx(){ document.querySelectorAll('#wxcard [data-k]').forEach(el=>{ const k=el.dataset.k; if(document.activeElement!==el) el.value=S.job[k]??''; });
   document.querySelectorAll('[data-k="w10"],[data-k="temp"]').forEach(el=>{ if(document.activeElement!==el) el.value=S.job[el.dataset.k]??''; });
-  setWxStatus(wxStatusText()); $('#hours').innerHTML=hoursHTML(); const rb=$('[data-act=wxrefresh]'); if(rb&&S.wx.lat!=null){rb.disabled=false;rb.style.opacity=1;} refresh(); }
+  setWxStatus(wxStatusText()); const hz=$('#hours'); if(hz) hz.innerHTML=hoursHTML(); const tz=$('#tmr'); if(tz) tz.innerHTML=tomorrowHTML(); const rb=$('[data-act=wxrefresh]'); if(rb&&S.wx.lat!=null){rb.disabled=false;rb.style.opacity=1;} refresh(); }
 function useGeo(){
   if(!navigator.geolocation){ toast('Location not available'); return; }
   setWxStatus('Getting your location…');
@@ -593,13 +905,14 @@ document.addEventListener('click', e=>{
   switch(act){
     case 'home': location.hash='home'; break;
     case 'theme': S.theme = document.documentElement.classList.contains('dark')?'light':'dark'; save(true); applyTheme(); a.textContent=S.theme==='dark'?'☀️':'🌙'; break;
-    case 'newjob': if(confirm('Start a new job? This clears all checklists and job details on this phone. Share any records you need first.')){ const th=S.theme; S=freshState(); S.theme=th; save(true); renderHome(); } break;
+    case 'newjob': if(confirm('Start a new job? This clears the job checklists and job details on this device (the Ongoing ones – battery log, maintenance, renewals, annual review – are kept). Share any records you need first.')){
+      const th=S.theme, kept={}; LISTS.filter(l=>l.keep).forEach(l=>{ if(S.lists[l.id]) kept[l.id]=S.lists[l.id]; }); S=freshState(); S.theme=th; S.lists=kept; save(true); renderHome(); } break;
     case 'tick': { const st=I(lid,iid); st.done=!st.done; st.t=st.done?Date.now():null; if(st.done) st.skip=false; save(); updateItem(iid); if(navigator.vibrate) navigator.vibrate(15); break; }
     case 'note': { const st=I(lid,iid); const x=itemEl.querySelector('[data-x=note]'); x.classList.toggle('hide'); if(!x.classList.contains('hide')) x.querySelector('input').focus(); st.showNote=!x.classList.contains('hide'); save(); break; }
     case 'skip': { const st=I(lid,iid); st.skip=!st.skip; if(st.skip){ st.done=false; st.t=null; } save(); updateItem(iid); if(st.skip) $('#it_'+iid+' [data-n=skipReason]').focus(); break; }
     case 'share': share(lid); break;
     case 'copy': copyDownload(lid); break;
-    case 'reset': if(confirm('Reset this checklist? Ticks, notes and N/A reasons will be cleared (job details are kept).')){ delete S.lists[lid]; save(true); renderList(lid); toast('Checklist reset'); } break;
+    case 'reset': if(confirm('Reset this checklist? Ticks, notes and N/A reasons will be cleared (job details, dates and battery details are kept).')){ const f=S.lists[lid]&&S.lists[lid].f; delete S.lists[lid]; if(f) L(lid).f=f; save(true); renderList(lid); toast('Checklist reset'); } break;
     case 'jump': { const it=document.querySelector('.item.ng:not(.done)') || document.querySelector('#lights'); if(it){ const y=it.getBoundingClientRect().top+scrollY-200; scrollTo({top:y,behavior:'smooth'}); } break; }
     case 'geo': useGeo(); break;
     case 'place': searchPlace($('#placeq').value); break;
@@ -614,6 +927,8 @@ document.addEventListener('input', e=>{
   if(t.dataset.k){ S.job[t.dataset.k]=t.value; document.querySelectorAll(`[data-k="${t.dataset.k}"]`).forEach(o=>{ if(o!==t) o.value=t.value; }); save(); if(lid) refresh(); }
   else if(t.dataset.n){ const iid=t.closest('.item').dataset.i; I(lid,iid)[t.dataset.n]=t.value; save(); const m=t.closest('.item').querySelector('[data-act=note]'); if(m&&t.dataset.n==='note') m.classList.toggle('on',!!t.value); }
   else if(t.dataset.ln){ L(lid)[t.dataset.ln]=t.value; save(); }
+  else if(t.dataset.lf){ const l=L(lid); (l.f||(l.f={}))[t.dataset.lf]=t.value; save();
+    const sp=document.querySelector(`[data-due="${t.dataset.lf}"]`); if(sp){ const di=dueInfo(t.value); sp.className='due '+(di?di.cls:''); sp.textContent=di?di.txt:'No date set'; } }
 });
 document.addEventListener('change', e=>{ if(e.target.dataset.k==='hPlan' && S.wx.w80!=null){ /* recompute wind at height */ const h=num(S.job.hPlan)||120, w10=num(S.wx.auto?.w10), w80=S.wx.w80, w120=S.wx.w120;
   if(w10!=null){ const wH = h<=10?w10 : h<=80 ? w10+(w80-w10)*(h-10)/70 : w80+(w120-w80)*Math.min(1,(h-80)/40); S.job.wH=String(Math.round(wH*10)/10); S.wx.auto.wH=S.job.wH; save(); redrawWx(); } } });

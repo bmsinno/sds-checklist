@@ -1,6 +1,6 @@
 /* SDS Checklists service worker – caches the app shell only.
    Cross-origin requests (Open-Meteo, NOAA, IAA map) are never intercepted or cached. */
-const CACHE = 'sds-checklist-v2.0.0';
+const CACHE = 'sds-checklist-v2.1.0';
 const SHELL = [
   './', './index.html', './manifest.json',
   './icons/logo.png', './icons/logo-rev.png', './icons/apple-touch-icon.png',
